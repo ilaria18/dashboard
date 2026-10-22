@@ -634,8 +634,10 @@ function wireCommon(onRow){
   $('#scrim').addEventListener('click',closeOver);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOver()});
   $('#over').addEventListener('click',e=>{if(e.target.closest('.x'))closeOver()});
-  document.addEventListener('click',e=>{const tr=e.target.closest('tr[data-id]');if(tr)onRow(+tr.dataset.id)});
-  document.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const tr=e.target.closest&&e.target.closest('tr[data-id]');if(tr){e.preventDefault();onRow(+tr.dataset.id)}}});
+  document.addEventListener('click',e=>{if(e.target.closest('button.act'))return;const tr=e.target.closest('tr[data-id]');if(tr)onRow(+tr.dataset.id)});
+  document.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){if(e.target.closest&&e.target.closest('button.act'))return;const tr=e.target.closest&&e.target.closest('tr[data-id]');if(tr){e.preventDefault();onRow(+tr.dataset.id)}}});
+  /* demo actions: shown as done on the page only, nothing is stored or sent */
+  document.addEventListener('click',e=>{const b=e.target.closest('button.act');if(!b||b.disabled)return;b.textContent=b.dataset.act==='seen'?'Seen ✓':'Medical staff notified ✓';b.classList.add('done');b.disabled=true});
   $('#nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;document.querySelectorAll('#nav a').forEach(x=>{x.classList.toggle('on',x===a)})});
 }
 const overHead=a=>`<div class="over-h"><div><h3>${a.name}</h3><div class="p">${{GK:'Goalkeeper',DF:'Defender',MF:'Midfielder',FW:'Forward'}[a.pos]} · ${a.age} years · ${a.ent.length} check-ins in 9 months · last ${a.m.lastI==null?'–':a.m.lastI===0?'today':a.m.lastI+' d ago'}</div></div><button class="x" type="button" aria-label="Close">✕</button></div>`;
@@ -688,11 +690,11 @@ const enSq=me(ENT.filter(e=>e.i<=6)),enPrev=me(ENT.filter(e=>e.i>=7&&e.i<=34));
 const nx=NEXT[0];
 /* individual priority for the coach */
 function prio(a){const m=a.m,lastSym=m.last&&isSym(m.last)?m.last:null;
-  if(m.alerts.length)return{k:'urg',t:'Ask today',w:`Recurring flag on ${m.alerts[0].days} of the last 7 days. Talk to the medical staff.`,o:0};
-  if(m.redRecent)return{k:'urg',t:'Ask today',w:'Red-flag sensation in the last 48 hours.',o:0};
-  if(m.days7===0||m.lastI>=4)return{k:'sil',t:'Silent',w:`No check-in for ${m.lastI} days${lastSym&&lastSym.int>=6?`, after a check-in at intensity ${lastSym.int}/10`:''}.`,o:1};
-  if(m.en7!=null&&m.base!=null&&m.en7<=m.base-1)return{k:'wat',t:'Watch',w:`Energy ${f1(m.en7)} this week against her usual ${f1(m.base)}.`,o:2};
-  if(m.int7!=null&&m.int7>=5)return{k:'wat',t:'Watch',w:`Sensations averaging ${f1(m.int7)}/10 this week.`,o:2};
+  if(m.alerts.length)return{k:'urg',t:'Urgent',w:`Recurring flag on ${m.alerts[0].days} of the last 7 days. Talk to the medical staff.`,s:`flagged on ${m.alerts[0].days} of the last 7 days`,o:0};
+  if(m.redRecent)return{k:'urg',t:'Urgent',w:'Red-flag sensation in the last 48 hours.',s:'red-flag sensation in the last 48 hours',o:0};
+  if(m.days7===0||m.lastI>=4)return{k:'sil',t:lastSym&&lastSym.int>=6?'Silent after pain':'Silent',w:`No check-in for ${m.lastI} days${lastSym&&lastSym.int>=6?`, after a check-in at intensity ${lastSym.int}/10`:''}.`,s:`silent for ${m.lastI} days`,o:1};
+  if(m.en7!=null&&m.base!=null&&m.en7<=m.base-1)return{k:'wat',t:'Watch',w:`Energy ${f1(m.en7)} this week against her usual ${f1(m.base)}.`,s:`energy ${f1(m.en7)} against her usual ${f1(m.base)}`,o:2};
+  if(m.int7!=null&&m.int7>=5)return{k:'wat',t:'Watch',w:`Sensations averaging ${f1(m.int7)}/10 this week.`,s:`averaging ${f1(m.int7)}/10 this week`,o:2};
   return null}
 const flagged=ATH.map(a=>({a,p:prio(a)})).filter(x=>x.p).sort((x,y)=>x.p.o-y.p.o||x.a.name.localeCompare(y.a.name));
 function hints(a){const h=[],m=a.m;
@@ -707,12 +709,22 @@ function avail(a){const p=prio(a);
   if(p||a.sigs.some(x=>['pk','gr'].includes(x.k))||(a.fat.drop!=null&&a.fat.drop>=.8)||projLow(a,-NEXT[0].i))return{k:'wat',t:'Manage load'};
   return{k:'okg',t:'Available'}}
 const AV=ATH.map(a=>avail(a)),nAv=AV.filter(x=>x.t==='Available').length,nMg=AV.filter(x=>x.t==='Manage load').length,nLm=AV.filter(x=>x.t==='Limited').length;
-const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td>${pill(p.k,p.t)}</td><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos}</div></div></td><td class="nt" style="max-width:300px">${p.w}</td><td>${strip(a.m.strip7)}</td><td class="mono">${f1(a.m.en7)}${dlt(a.m.en7,a.m.base)}</td><td class="mono">${a.m.days7}/7</td></tr>`).join('');
+/* needs attention: what she reports (words and intensity, never the body area), last 7 days, actions */
+const WHEN=i=>i===0?'today':i===1?'yesterday':'on '+fmtD(i);
+const reportCell=(a,p)=>{
+  const sy=a.m.l7.filter(isSym);
+  if(!sy.length)return`<div class="pain"><div class="z">No sensation reported</div><div class="w">${p.s}</div></div>`;
+  const li=Math.min(...sy.map(e=>e.i)),day=sy.filter(e=>e.i===li).sort((x,y)=>y.int-x.int),top=day[0],pk=sy.reduce((m,e)=>e.int>m.int?e:m,top);
+  const wt=[...new Set(day.map(e=>WORDS[e.w].n.toLowerCase()))].slice(0,3).join(', ');
+  return`<div class="pain"><div class="z">${wt[0].toUpperCase()+wt.slice(1)}</div><div class="w"><em>${top.int}/10</em> ${WHEN(li)}${pk.int>top.int?`, peak ${pk.int}/10 ${WHEN(pk.i)}`:''} · ${p.s}</div></div>`};
+const actCell=a=>`<div class="acts"><button class="btn act" type="button" data-act="seen">Seen</button><button class="btn act" type="button" data-act="notify">Notify: medical staff</button></div>`;
+const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${actCell(a)}</td></tr>`).join('');
+const nSil=flagged.filter(x=>x.p.k==='sil'),attNote=[[flagged.filter(x=>x.p.k==='urg').length,'urgent'],[flagged.filter(x=>x.p.k==='wat').length,'watch'],[nSil.length,'silent'+(nSil.length&&nSil.every(x=>x.p.t==='Silent after pain')?' after pain':'')]].filter(x=>x[0]).map(x=>`<b>${x[0]}</b> ${x[1]}`).join(', ');
 /* squad table */
 let filt='All';
 const sqRows=()=>ATH.filter(a=>filt==='All'||a.pos===filt).sort((a,b)=>a.name.localeCompare(b.name)).map(a=>{const m=a.m;
   const v=AV[a.id],h=hints(a);
-  return`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(v.k,v.t)}</td><td>${strip(m.strip7)}</td>
+  return`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(v.k,v.t)}</td>
   <td class="mono">${f1(m.en7)}${dlt(m.en7,m.base)}</td><td class="mono ${recCls(m.rec.Match)}">${recTxt('Match',m.rec.Match)}</td><td class="mono">${a.fat.drop==null?'–':(a.fat.drop>=.8?'<span class="bd">▼ '+f1(a.fat.drop)+'</span>':'ok')}</td><td class="nt" style="max-width:300px">${h[0]||'<span class="bt">–</span>'}${h.length>1?` <span class="bt">+${h.length-1}</span>`:''}</td></tr>`}).join('');
 /* recovery: team distribution */
 const RC=['Match','Strength','Speed'];
@@ -793,12 +805,12 @@ $('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['s
 <section class="card pad"><div class="ch"><h2>Hints for the week</h2><div class="note">from recovery time, the routine and the calendar</div></div>
 <ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
 
-<section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note"><b>${flagged.length}</b> athletes · select a row for the detail</div></div>
-<div class="tw"><table><thead><tr><th>Priority</th><th>Athlete</th><th>Why</th><th>Last 7 days</th><th>Energy 7d</th><th>Check-ins</th></tr></thead><tbody>${attRows}</tbody></table></div>
-<div class="legend" style="margin-top:12px"><span><i style="background:var(--s0)"></i>no pain</span><span><i style="background:var(--s1)"></i>1–3</span><span><i style="background:var(--s2)"></i>4–6</span><span><i style="background:var(--s3)"></i>7–10</span><span><i style="border:1.5px dashed var(--s-none)"></i>no check-in</span></div></section>
+<section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note">${attNote} · select a row for the detail</div></div>
+<div class="legend"><span><i style="background:var(--s0)"></i>no pain</span><span><i style="background:var(--s1)"></i>1–3</span><span><i style="background:var(--s2)"></i>4–6</span><span><i style="background:var(--s3)"></i>7–10</span><span><i style="border:1.5px dashed var(--s-none)"></i>no check-in</span></div>
+<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Actions"></th></tr></thead><tbody>${attRows}</tbody></table></div></section>
 
 <section class="card" id="sq"><div class="ch"><h2>Availability</h2><div class="note">energy 1–7 against each athlete's own usual · recovery = time back to usual energy</div><div class="right"><div class="seg" id="seg">${['All','GK','DF','MF','FW'].map(p=>`<button type="button" data-p="${p}" aria-pressed="${p==='All'}">${p}</button>`).join('')}</div></div></div>
-<div class="tw"><table><thead><tr><th>Athlete</th><th>Availability</th><th>Last 7 days</th><th>Energy 7d</th><th>Recovery after match</th><th>Season</th><th>Hint</th></tr></thead><tbody id="sqb">${sqRows()}</tbody></table></div></section>
+<div class="tw"><table><thead><tr><th>Athlete</th><th>Availability</th><th>Energy 7d</th><th>Recovery after match</th><th>Season</th><th>Hint</th></tr></thead><tbody id="sqb">${sqRows()}</tbody></table></div></section>
 
 <section class="card pad" id="rc"><div class="ch"><h2>Recovery time, squad</h2><div class="note">hours until energy is back to her usual, after the hardest sessions</div></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${RC.map(t=>{const d=rcDist(t);return`<div><div class="kv"><div><span>After ${t.toLowerCase()} · median</span><b>${rcMed(t,d.med)}</b></div></div><div class="stk" style="margin:2px 0 4px">${d.parts.map(p=>`<i title="${p[0]}: ${p[1]}" style="width:${p[1]/d.n*100}%;background:${p[2]}"></i>`).join('')}</div><div class="legend" style="margin:0">${d.parts.filter(p=>p[1]).map(p=>`<span><i style="background:${p[2]}"></i>${p[0]} · ${p[1]}</span>`).join('')}</div></div>`}).join('')}</div>
