@@ -624,9 +624,9 @@ function shell({label,nav,title,sub,role,roleLabel,band,main}){
 <aside class="rail"><div class="brand"><span class="mark">BAB</span><span class="stf">${label}</span></div>
 <nav class="nav" id="nav">${nav.map((x,i)=>`<a href="#${x[0]}" ${i?'':'class="on" aria-current="page"'}>${x[1]}</a>`).join('')}</nav>
 <div class="rail-sec"><h3>Match calendar</h3>${nextList()}</div>
-<div class="rail-foot">Parma Calcio Femminile<br>Sample data · last 9 months of check-ins</div></aside>
+<div class="rail-foot">Sample data · last 9 months of check-ins</div></aside>
 <main class="main"><header class="top"><div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="who"><div class="av">${role}</div><div class="role">${roleLabel}</div></div></header>
-<div class="band">${band.map(b=>`<div class="bseg"><p class="bl">${b[0]}</p><div class="bv">${b[1]} <span class="bm">${b[2]}</span></div></div>`).join('')}</div>${main}</main></div>
+<div class="band">${band.map(b=>typeof b==='string'?b:`<div class="bseg"><p class="bl">${b[0]}</p><div class="bv">${b[1]} <span class="bm">${b[2]}</span></div></div>`).join('')}</div>${main}</main></div>
 <div class="scrim" id="scrim"></div><aside class="over" id="over" aria-hidden="true" role="dialog" aria-label="Athlete detail"><div id="overc"></div></aside>`}
 function openOver(html){$('#overc').innerHTML=html;$('#over').classList.add('on');$('#scrim').classList.add('on');$('#over').setAttribute('aria-hidden','false');const x=$('#over .x');if(x)x.focus()}
 function closeOver(){$('#over').classList.remove('on');$('#scrim').classList.remove('on');$('#over').setAttribute('aria-hidden','true')}
@@ -775,14 +775,23 @@ function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
   <div><p class="lab">Words, last 30 days</p><div class="words">${words}</div></div>
   <p class="sub2">Body areas, period dates and painkillers are shown to the medical staff only.</p></div>`}
 
+/* top band: day, today's session, check-ins today, session effort */
+const FDOW=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],FMON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const todayS=SESS[0],mdK=(()=>{let k=0;while(k<7&&!MATCH.has(k))k++;return k})(),mdLab=mdK>=7?'':'MD'+(mdK?'+'+mdK:'');
+const chkToday=ATH.filter(a=>a.ent.some(e=>e.i===0)).length;
+const PLAN_RPE=3,TEAM_RPE=5.4; /* sample values: the demo check-ins carry no session-effort field */
+const chev=d=>`<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+const topBand=[
+  `<div class="bseg datenav"><button class="daynav" type="button" disabled aria-label="Previous day" title="Sample data: one day only">${chev('M7.5 2.5 4 6l3.5 3.5')}</button><span class="daylabel">${FDOW[dow(0)]}, ${dt(0).getUTCDate()} ${FMON[dt(0).getUTCMonth()]} ${dt(0).getUTCFullYear()}</span><button class="daynav" type="button" disabled aria-label="Next day" title="Sample data: one day only">${chev('M4.5 2.5 8 6 4.5 9.5')}</button></div>`,
+  ["Today's session",todayS?`${mdLab?mdLab+' · ':''}${todayS.type}`:'Rest day',todayS?`${Math.round((todayS.e-todayS.s)*60)} min`:''],
+  ['Checked in',String(chkToday),`of ${N}`],
+  ['Session effort',`Planned ${PLAN_RPE} · Team RPE ${TEAM_RPE}`,`<span class="gauge" role="img" aria-label="Team RPE ${TEAM_RPE} against planned ${PLAN_RPE}"><span class="gfill" style="width:${TEAM_RPE*10}%"></span><span class="gtick" style="left:calc(${PLAN_RPE*10}% - 1px)"></span></span>`]];
 $('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day'],['ss','Sessions']],
-  title:'Youth team · Head coach',sub:`Monday 5 October 2026 · <b>${N} athletes</b>, ages 13–16 · availability, signals and hints from check-ins, the training routine and the match calendar`,role:'HC',roleLabel:'Head coach',
-  band:[['Available','<b>'+nAv+'</b>',`${nMg} manage load · ${nLm} limited`],['Check-in completion','<b>'+pct(c7)+'</b>',`${c7>=c7p?'▲':'▼'} ${Math.abs(Math.round((c7-c7p)*100))} pt on last week`],
-    ['Energy, 7 days','<b>'+f1(enSq)+'</b>',`/ 7 · ${dlt(enSq,enPrev).replace(/<[^>]+>/g,'')} vs last 4 weeks`],['Next match','<b>'+fmtD(nx.i)+'</b>',`${nx.home?'Home':'Away'} · ${nx.t} · in ${-nx.i} days`]],
+  title:'U14 Women',sub:'Season 2026/27',role:'HC',roleLabel:'Head coach',
+  band:topBand,
   main:`
 <section class="card pad"><div class="ch"><h2>Hints for the week</h2><div class="note">from recovery time, the routine and the calendar</div></div>
-<ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul>
-<p class="sub2" style="margin-top:10px">Observations from check-ins, not medical advice. The coach decides.</p></section>
+<ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
 
 <section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note"><b>${flagged.length}</b> athletes · select a row for the detail</div></div>
 <div class="tw"><table><thead><tr><th>Priority</th><th>Athlete</th><th>Why</th><th>Last 7 days</th><th>Energy 7d</th><th>Check-ins</th></tr></thead><tbody>${attRows}</tbody></table></div>
