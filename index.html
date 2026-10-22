@@ -765,11 +765,12 @@ const cg=ENT.filter(e=>CONG[e.i]),nc=ENT.filter(e=>!CONG[e.i]),share=l=>l.filter
 const cgPairs=[...MATCH].filter(j=>[...MATCH].some(k=>k>j&&k-j<=4)).length;
 /* hints for the week */
 const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
+const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed','athletes named in Weekly load and recovery');
 const weekHints=[
-  `<b>Tuesday Strength</b> comes ${Math.round(gapRows[0].g.gap)} h after the match. ${gapRows[0].rd} of ${gapRows[0].rd+gapRows[0].nr} athletes are usually back to their energy by then: ${gapRows[0].hint.toLowerCase()}`,
-  `<b>Wednesday Speed</b> comes ${gapRows[1].g.gap} h after Strength. ${gapRows[1].nr} of ${gapRows[1].rd+gapRows[1].nr} are usually not back yet: ${gapRows[1].sh<.6?'a lighter Strength day, or Speed with reduced volume for those listed, would protect Sunday.':'give those listed a reduced Speed volume.'}`,
-  `<b>Sunday match</b>: ${cyLow.length?`${cyLow.length} athlete${cyLow.length>1?'s are':' is'} likely in a low-energy phase (${cyLow.map(a=>a.name.split(' ')[1]).join(', ')}); plan warm-up and substitutions.`:'no athlete projected in a low-energy phase.'}`,
-  `<b>The next 3 weeks</b> include 3 matches in 8 days: ${upc[0][2].length} athlete${upc[0][2].length===1?'':'s'} may not be back in 73 h (${upc[0][2].map(a=>a.name.split(' ')[1]).join(', ')||'none'}).`];
+  `<b>Tuesday Strength</b> comes ${Math.round(gapRows[0].g.gap)} h after the match, and ${gapRows[0].rd} of ${gapRows[0].rd+gapRows[0].nr} athletes are usually back to their usual energy by then. <b>Recommendation:</b> ${recTxt2(gapRows[0].hint)}`,
+  `<b>Wednesday Speed</b> comes ${gapRows[1].g.gap} h after Strength, and ${gapRows[1].nr} of ${gapRows[1].rd+gapRows[1].nr} athletes are usually not back yet. <b>Recommendation:</b> ${gapRows[1].sh<.6?'lighten Strength, or run Speed with reduced volume for the athletes named in Weekly load and recovery, to protect Sunday.':'give the athletes named in Weekly load and recovery a reduced Speed volume.'}`,
+  `<b>Sunday match:</b> ${cyLow.length?`${cyLow.length} athlete${cyLow.length>1?'s are':' is'} likely in a low-energy phase (${cyLow.map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan warm-up and substitutions.`:'no athlete is projected in a low-energy phase. <b>Recommendation:</b> no change to the plan.'}`,
+  `<b>The next 3 weeks</b> include 3 matches in 8 days: ${upc[0][2].length?`${upc[0][2].length} athlete${upc[0][2].length===1?'':'s'} may not be back in 73 h (${upc[0][2].map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan rotation and extra recovery time for ${upc[0][2].length===1?'this athlete':'these athletes'}.`:'all athletes are expected to be back in time.'}`];
 /* athlete detail */
 function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
   const bars=m.daily14.map((x,k)=>`<div class="day"><span class="bx" style="height:${x==null?3:Math.round(x/7*48)}px;background:${x==null?'var(--s-none)':'var(--bar)'}"></span><span class="dl">${k%7===0||k===13?dt(13-k).getUTCDate():'&nbsp;'}</span></div>`).join('');
@@ -802,7 +803,7 @@ $('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['s
   title:'U14 Women',sub:'Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
-<section class="card pad"><div class="ch"><h2>Hints for the week</h2><div class="note">from recovery time, the routine and the calendar</div></div>
+<section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins, recovery time, the routine and the calendar</div></div>
 <ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
 
 <section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note">${attNote} · select a row for the detail</div></div>
@@ -812,7 +813,7 @@ $('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['s
 <section class="card" id="sq"><div class="ch"><h2>Availability</h2><div class="note">energy 1–7 against each athlete's own usual · recovery = time back to usual energy</div><div class="right"><div class="seg" id="seg">${['All','GK','DF','MF','FW'].map(p=>`<button type="button" data-p="${p}" aria-pressed="${p==='All'}">${p}</button>`).join('')}</div></div></div>
 <div class="tw"><table><thead><tr><th>Athlete</th><th>Availability</th><th>Energy 7d</th><th>Recovery after match</th><th>Season</th><th>Hint</th></tr></thead><tbody id="sqb">${sqRows()}</tbody></table></div></section>
 
-<section class="card pad" id="rc"><div class="ch"><h2>Recovery time, squad</h2><div class="note">hours until energy is back to her usual, after the hardest sessions</div></div>
+<section class="card pad" id="rc"><div class="ch"><h2>Recovery time, squad</h2><div class="note">hours until energy is back to the athlete's usual</div></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${RC.map(t=>{const d=rcDist(t);return`<div><div class="kv"><div><span>After ${t.toLowerCase()} · median</span><b>${rcMed(t,d.med)}</b></div></div><div class="stk" style="margin:2px 0 4px">${d.parts.map(p=>`<i title="${p[0]}: ${p[1]}" style="width:${p[1]/d.n*100}%;background:${p[2]}"></i>`).join('')}</div><div class="legend" style="margin:0">${d.parts.filter(p=>p[1]).map(p=>`<span><i style="background:${p[2]}"></i>${p[0]} · ${p[1]}</span>`).join('')}</div></div>`}).join('')}</div>
 <p class="sub2" style="margin-top:12px">Estimated for each athlete from her check-ins in the hours after a match, Strength or Speed session, against her energy when rested.</p></section>
 
