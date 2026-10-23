@@ -720,8 +720,8 @@ const reportCell=(a,p)=>{
   const li=Math.min(...sy.map(e=>e.i)),day=sy.filter(e=>e.i===li).sort((x,y)=>y.int-x.int),top=day[0],pk=sy.reduce((m,e)=>e.int>m.int?e:m,top);
   const wt=phrases(day).slice(0,2).map((s,i)=>i?s[0].toLowerCase()+s.slice(1):s).join('; ');
   return`<div class="pain"><div class="z">${wt}</div><div class="w"><em>${top.int}/10</em> ${WHEN(li)}${pk.int>top.int?`, peak ${pk.int}/10 ${WHEN(pk.i)}`:''} · ${p.s}</div></div>`};
-const actCell=a=>`<div class="acts"><button class="btn act" type="button" data-act="seen">Seen</button><button class="btn act" type="button" data-act="notify">Medical staff</button></div>`;
-const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${actCell(a)}</td></tr>`).join('');
+const seenBtn=`<button class="btn act" type="button" data-act="seen">Seen</button>`,notifyBtn=`<button class="btn act" type="button" data-act="notify">Medical staff</button>`;
+const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td><td>${notifyBtn}</td></tr>`).join('');
 const nSil=flagged.filter(x=>x.p.k==='sil'),attNote=[[flagged.filter(x=>x.p.k==='urg').length,'urgent'],[flagged.filter(x=>x.p.k==='wat').length,'watch'],[nSil.length,'silent'+(nSil.length&&nSil.every(x=>x.p.t==='Silent after pain')?' after pain':'')]].filter(x=>x[0]).map(x=>`<b>${x[0]}</b> ${x[1]}`).join(', ');
 /* squad table */
 let filt='All';
@@ -804,7 +804,7 @@ $('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['s
 
 <section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note">${attNote} · select a row for the detail</div></div>
 <div class="legend"><span><i style="background:var(--s0)"></i>no pain</span><span><i style="background:var(--s1)"></i>1–3</span><span><i style="background:var(--s2)"></i>4–6</span><span><i style="background:var(--s3)"></i>7–10</span><span><i style="border:1.5px dashed var(--s-none)"></i>no check-in</span></div>
-<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th>Notify</th></tr></thead><tbody>${attRows}</tbody></table></div></section>
+<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th><th>Notify</th></tr></thead><tbody>${attRows}</tbody></table></div></section>
 
 <section class="card" id="sq"><div class="ch"><h2>Availability</h2><div class="note">energy 1–7 against each athlete's own usual · recovery = time back to usual energy</div><div class="right"><div class="seg" id="seg">${['All','GK','DF','MF','FW'].map(p=>`<button type="button" data-p="${p}" aria-pressed="${p==='All'}">${p}</button>`).join('')}</div></div></div>
 <div class="tw"><table><thead><tr><th>Athlete</th><th>Availability</th><th>Energy 7d</th><th>Recovery after match</th><th>Season</th><th style="white-space:normal;min-width:220px;max-width:340px">Technical Staff Guidance</th></tr></thead><tbody id="sqb">${sqRows()}</tbody></table></div></section>
