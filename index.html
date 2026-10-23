@@ -759,8 +759,6 @@ const sesRows=SES.map(([d,t])=>{const post=ENT.filter(e=>e.ph==='post'&&e.stype=
   const S=t==='Match'?{s:15,e:16.75}:ROUT.find(r=>r&&r.type===t);
   return{d,t,time:hhmm(S.s)+'–'+hhmm(S.e),n:post.length,int:mi(post),enPre:me(pre),enPost:me(post)}});
 const sesTbl=sesRows.map(r=>`<tr><td>${r.d}</td><td><b>${r.t}</b></td><td class="mono">${r.time}</td><td class="mono">${r.n}</td><td style="min-width:150px">${barRows([['',r.int,'var(--bar)']],10).replace('grid-template-columns:110px','grid-template-columns:0px')}</td><td class="mono">${f1(r.enPre)}</td><td class="mono">${f1(r.enPost)}</td></tr>`).join('');
-const slots=['Morning','Afternoon','Evening'],slotOf=t=>t<12?0:t<18?1:2;
-const hmGet=(r,ci)=>{const l=ENT.filter(e=>e.i<=89&&e.en!=null&&dow(e.i)===ci&&slotOf(e.t)===slots.indexOf(r));return l.length>=12?me(l):null};
 const cg=ENT.filter(e=>CONG[e.i]),nc=ENT.filter(e=>!CONG[e.i]),share=l=>l.filter(e=>isSym(e)&&tierOf(e)>=1).length/l.length;
 const cgPairs=[...MATCH].filter(j=>[...MATCH].some(k=>k>j&&k-j<=4)).length;
 /* hints for the week */
@@ -833,8 +831,7 @@ ${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'
 
 <div class="grid">
 <section class="card pad" id="wk"><div class="ch"><h2>Match week rhythm</h2><div class="note">squad energy around ${sun.length} matches (1–7)</div></div><svg id="mw"></svg>
-<div class="legend"><span><i style="background:#0A7364"></i>average energy · MD = match day</span></div></section>
-<section class="card pad"><div class="ch"><h2>Energy by time of day</h2><div class="note">last 90 days, scale 1–7</div></div>${heat(slots,DOW,hmGet,3.5,6.5)}</section></div>
+<div class="legend"><span><i style="background:#0A7364"></i>average energy · MD = match day</span></div></section></div>
 </div>
 
 <section class="card" id="ss"><div class="ch"><h2>Sessions</h2><div class="note">squad check-ins in the 4 hours after each session, last 6 months</div></div>
