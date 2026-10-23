@@ -618,12 +618,10 @@ function line(el,labels,S,o){const W=560,H=210,L=40,R=20,T=14,B=28,mn=o[0],mx=o[
 const zrows=(rows,h)=>`<div class="zgrid zhead"><span>Athletes</span><span>Area</span><span>${h}</span><span>vs prev. month</span></div>`+rows.map(r=>`<div class="zgrid zrow" style="cursor:default"><span class="za"><b>${r[1]}</b></span><span class="zn">${r[0]}</span><span class="bartrack"><span class="bar" style="width:${r[2]}%;background:${r[2]>=40?'var(--s3)':r[2]>=25?'var(--s2)':'var(--bar)'}"></span></span><span class="delta ${r[3]>0?'up':r[3]<0?'dn':'eq'}">${r[3]>0?'▲':r[3]<0?'▼':'='} ${Math.abs(r[3])||''}</span></div>`).join('');
 const barRows=(rows,max,fmt)=>rows.map(r=>`<div class="zgrid" style="grid-template-columns:110px minmax(0,1fr) 54px;padding:4px 0"><span class="zn" style="font-size:13px">${r[0]}</span><span class="bartrack"><span class="bar" style="width:${r[1]==null?0:Math.max(r[1]/max*100,2)}%;background:${r[2]||'var(--bar)'}"></span></span><span class="delta eq" style="color:var(--ink)">${fmt?fmt(r[1]):f1(r[1])}</span></div>`).join('');
 const heat=(rows,cols,get,mn,mx,fmt)=>`<table class="hm"><tr><th></th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rows.map(r=>`<tr><th class="l">${r}</th>${cols.map((c,ci)=>{const v=get(r,ci);if(v==null)return'<td style="background:rgba(44,44,58,.05);color:var(--ink-3)">–</td>';const t=clamp((v-mn)/(mx-mn),0,1);return`<td style="background:${mix('#E8F4F3','#0A7364',t)};color:${t>.5?'#fff':'#2C2C3A'}">${fmt?fmt(v):v.toFixed(1)}</td>`}).join('')}</tr>`).join('')}</table>`;
-const nextList=()=>`<ul class="fx">${NEXT.map(n=>`<li>${fmtD(n.i)}<span>${n.home?'Home':'Away'} · ${n.t}</span></li>`).join('')}</ul>`;
 function shell({label,nav,title,sub,role,roleLabel,band,main}){
   return`<div class="shell"><div class="mbar"><span class="mark">BAB</span><span class="stf">${label}</span></div>
 <aside class="rail"><div class="brand"><span class="mark">BAB</span><span class="stf">${label}</span></div>
 <nav class="nav" id="nav">${nav.map((x,i)=>`<a href="#${x[0]}" ${i?'':'class="on" aria-current="page"'}>${x[1]}</a>`).join('')}</nav>
-<div class="rail-sec"><h3>Match calendar</h3>${nextList()}</div>
 <div class="rail-foot">Sample data · last 9 months of check-ins</div></aside>
 <main class="main"><header class="top"><div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="who"><div class="av">${role}</div><div class="role">${roleLabel}</div></div></header>
 <div class="band">${band.map(b=>typeof b==='string'?b:`<div class="bseg"><p class="bl">${b[0]}</p><div class="bv">${b[1]} <span class="bm">${b[2]}</span></div></div>`).join('')}</div>${main}</main></div>
@@ -754,11 +752,6 @@ const sun=[...MATCH].filter(i=>dow(i)===6&&!CONG[i]&&i>=3);
 const offs=[-4,-3,-2,-1,0,1,2,3];
 const mwk=offs.map(o=>me(ENT.filter(e=>sun.some(m=>e.i===m-o))));
 const mwkLab=offs.map(o=>o===0?'MD':o<0?'MD'+o:'MD+'+o).map(s=>s.replace('-','−'));
-const SES=[['Mon','Recovery'],['Tue','Strength'],['Wed','Speed'],['Thu','Tactical'],['Fri','Activation'],['Sun','Match']];
-const sesRows=SES.map(([d,t])=>{const post=ENT.filter(e=>e.ph==='post'&&e.stype===t&&e.i<=179),pre=ENT.filter(e=>e.ph==='pre'&&e.stype===t&&e.i<=179);
-  const S=t==='Match'?{s:15,e:16.75}:ROUT.find(r=>r&&r.type===t);
-  return{d,t,time:hhmm(S.s)+'–'+hhmm(S.e),n:post.length,int:mi(post),enPre:me(pre),enPost:me(post)}});
-const sesTbl=sesRows.map(r=>`<tr><td>${r.d}</td><td><b>${r.t}</b></td><td class="mono">${r.time}</td><td class="mono">${r.n}</td><td style="min-width:150px">${barRows([['',r.int,'var(--bar)']],10).replace('grid-template-columns:110px','grid-template-columns:0px')}</td><td class="mono">${f1(r.enPre)}</td><td class="mono">${f1(r.enPost)}</td></tr>`).join('');
 const cg=ENT.filter(e=>CONG[e.i]),nc=ENT.filter(e=>!CONG[e.i]),share=l=>l.filter(e=>isSym(e)&&tierOf(e)>=1).length/l.length;
 const cgPairs=[...MATCH].filter(j=>[...MATCH].some(k=>k>j&&k-j<=4)).length;
 /* hints for the week */
@@ -797,7 +790,7 @@ const topBand=[
   ["Today's session",todayS?`${mdLab?mdLab+' · ':''}${todayS.type}`:'Rest day',todayS?`${Math.round((todayS.e-todayS.s)*60)} min`:''],
   ['Checked in',String(chkToday),`of ${N}`],
   ['Session effort',`Planned ${PLAN_RPE} · Team RPE ${TEAM_RPE}`,`<span class="gauge" role="img" aria-label="Team RPE ${TEAM_RPE} against planned ${PLAN_RPE}"><span class="gfill" style="width:${TEAM_RPE*10}%"></span><span class="gtick" style="left:calc(${PLAN_RPE*10}% - 1px)"></span></span>`]];
-$('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day'],['ss','Sessions']],
+$('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day']],
   title:'U14 Women',sub:'Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
@@ -834,8 +827,6 @@ ${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'
 <div class="legend"><span><i style="background:#0A7364"></i>average energy · MD = match day</span></div></section></div>
 </div>
 
-<section class="card" id="ss"><div class="ch"><h2>Sessions</h2><div class="note">squad check-ins in the 4 hours after each session, last 6 months</div></div>
-<div class="tw"><table><thead><tr><th>Day</th><th>Session</th><th>Time</th><th>Check-ins</th><th>Intensity after (0–10)</th><th>Energy before</th><th>Energy after</th></tr></thead><tbody>${sesTbl}</tbody></table></div></section>
 
 
 
