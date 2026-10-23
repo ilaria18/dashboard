@@ -213,12 +213,13 @@ td:last-child{padding-right:0}
 .pill.urg{background:var(--coral-tint);border-color:rgba(163,32,47,.3);color:var(--coral-deep)}
 .pill.sil{background:var(--lav-tint);border-color:rgba(83,70,196,.26);color:var(--lav)}
 .pill.wat{background:var(--amber-tint);border-color:rgba(138,90,10,.28);color:var(--amber-deep)}
-.pill.fst{background:#E8F4F3;border-color:rgba(0,75,78,.28);color:var(--rail)}
 
 .pain .z{font-weight:500;font-size:13.5px}
 .pain .w{color:var(--ink-2);font-size:12.5px;margin-top:1px;font-variant-numeric:tabular-nums}
 .pain .w em{font-style:normal;color:var(--ink);font-weight:500}
 .pain .medl{font-size:12.5px;font-weight:600;color:var(--rail);margin-top:4px}
+.lk{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--rail);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(0,75,78,.35);text-underline-offset:2px}.lk:hover{text-decoration-color:var(--rail)}.lk:focus-visible{outline:2px solid var(--lav);outline-offset:2px;border-radius:3px}
+.sumhead{font-size:14.5px;line-height:1.5;margin:0 0 6px;color:var(--ink)}.sumhead b{font-family:var(--disp)}
 
 .strip{display:flex;gap:4px;align-items:center}
 .d{width:11px;height:11px;border-radius:99px;flex:none;display:block}
@@ -548,9 +549,6 @@ ATH[14].ent.push({i:6,t:20.5,w:'sore',int:6,en:3,zones:['calfR'],trig:'movement'
 [1,3,6,9,12].forEach(i=>ATH[3].pk.add(i));[2,5,8,11].forEach(i=>ATH[8].pk.add(i));
 /* ================= Metrics ================= */
 const isSym=e=>!WORDS[e.w].pos,tierOf=e=>TIER[WORDS[e.w].s];
-/* demo first reports today: below the alert thresholds, in an area with no report in the previous 30 days */
-const first=(a,w,int,en,zone,trig)=>{const g=ZG[zone];a.ent=a.ent.filter(e=>!(e.i>=1&&e.i<=30&&isSym(e)&&ZG[e.zones[0]]===g));force(a,0,w,int,en,zone,trig)};
-first(ATH[6],'sharp',5,5,'calfL','movement');first(ATH[13],'unstable',4,5,'ankleR','movement');first(ATH[18],'sharp',6,5,'shoulderR','movement');
 const win=(a,lo,hi)=>a.ent.filter(e=>e.i>=lo&&e.i<=hi);
 const BINS=[[0,1],[2,4],[5,9],[10,14],[15,20],[21,27]],BINL=['Day 1–2','3–5','6–10','11–15','16–21','22–28'];
 const bucket=h=>clamp(Math.floor((h+6)/12),0,5);
@@ -643,6 +641,7 @@ function wireCommon(onRow){
   $('#scrim').addEventListener('click',closeOver);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOver()});
   $('#over').addEventListener('click',e=>{if(e.target.closest('.x'))closeOver()});
+  document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o){onRow(+o.dataset.open);return}});
   document.addEventListener('click',e=>{if(e.target.closest('button.act'))return;const tr=e.target.closest('tr[data-id]');if(tr)onRow(+tr.dataset.id)});
   document.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){if(e.target.closest&&e.target.closest('button.act'))return;const tr=e.target.closest&&e.target.closest('tr[data-id]');if(tr){e.preventDefault();onRow(+tr.dataset.id)}}});
   /* demo actions: shown as done on the page only, nothing is stored or sent */
@@ -694,7 +693,7 @@ const N=ATH.length;
 const compl=(lo,hi)=>ATH.reduce((s,a)=>s+new Set(win(a,lo,hi).map(e=>e.i)).size,0)/(N*(hi-lo+1));
 const c7=compl(0,6),c7p=compl(7,13);
 const checked=ATH.filter(a=>a.m.status!=='none'),green=checked.filter(a=>a.m.status==='ok').length;
-const enSq=me(ENT.filter(e=>e.i<=6)),enPrev=me(ENT.filter(e=>e.i>=7&&e.i<=34));
+const enAll=me(ENT.filter(e=>e.i<=6)),enPrev=me(ENT.filter(e=>e.i>=7&&e.i<=34));
 const nx=NEXT[0];
 /* individual priority for the coach. A medical opinion is suggested to the athlete only in the cases marked mt */
 const MED='Suggest she asks for a medical opinion',MEDS='Get in touch; if the pain is still there, suggest she asks for a medical opinion';
@@ -713,11 +712,6 @@ function hints(a){const h=[],m=a.m;
   if(projLow(a,-NEXT[0].i))h.push('Likely in a low-energy phase on '+fmtD(NEXT[0].i)+': plan warm-up and the number of events or attempts.');
   if(m.growth)h.push('Pattern often seen in growth spurts: watch jump and sprint volume.');
   return h}
-function avail(a){const p=prio(a);
-  if(p&&p.k==='urg')return{k:'urg',t:'Limited'};
-  if(p||a.sigs.some(x=>['pk','gr'].includes(x.k))||(a.fat.drop!=null&&a.fat.drop>=.8)||projLow(a,-NEXT[0].i))return{k:'wat',t:'Manage load'};
-  return{k:'okg',t:'Available'}}
-const AV=ATH.map(a=>avail(a)),nAv=AV.filter(x=>x.t==='Available').length,nMg=AV.filter(x=>x.t==='Manage load').length,nLm=AV.filter(x=>x.t==='Limited').length;
 /* needs attention: what she reports (words and intensity, never the body area), last 7 days, actions */
 const WHEN=i=>i===0?'today':i===1?'yesterday':'on '+fmtD(i);
 /* plain-language sentence: what she feels and where, e.g. "Sharp pain in the right ankle" */
@@ -735,21 +729,6 @@ const reportCell=(a,p)=>{
 const seenBtn=`<button class="btn act" type="button" data-act="seen">Seen</button>`;
 const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td></tr>`).join('');
 const nSil=flagged.filter(x=>x.p.k==='sil'),attNote=[[flagged.filter(x=>x.p.k==='urg').length,'urgent'],[flagged.filter(x=>x.p.k==='wat').length,'watch'],[nSil.length,'silent'+(nSil.length&&nSil.every(x=>x.p.t==='Silent after pain')?' after pain':'')]].filter(x=>x[0]).map(x=>`<b>${x[0]}</b> ${x[1]}`).join(', ');
-/* new today: a sensation reported today in an area with no report in the previous 30 days, for athletes not already in Needs attention */
-const inAtt=new Set(flagged.map(x=>x.a.id));
-const newToday=ATH.filter(a=>!inAtt.has(a.id)).map(a=>{
-  const e=a.ent.filter(x=>x.i===0&&isSym(x)&&ZG[x.zones[0]]).sort((x,y)=>y.int-x.int).find(x=>!a.ent.some(o=>o.i>=1&&o.i<=30&&isSym(o)&&ZG[o.zones[0]]===ZG[x.zones[0]]));
-  return e?{a,e}:null}).filter(Boolean).sort((x,y)=>y.e.int-x.e.int||x.a.name.localeCompare(y.a.name));
-const newRows=newToday.map(({a,e})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill('fst','New')}</td><td><div class="pain"><div class="z">${phrases([e])[0]}</div><div class="w"><em>${e.int}/10</em> today · first report in this area in 30 days</div></div></td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td></tr>`).join('');
-const newCard=`<section class="card pad" id="new"><div class="ch"><h2>New today</h2><div class="note">${newToday.length?`<b>${newToday.length}</b> first report${newToday.length>1?'s':''}, not in Needs attention`:'no first reports today'}</div></div>
-${newToday.length?`<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th></tr></thead><tbody>${newRows}</tbody></table></div>`:'<p class="sub2">No first reports today.</p>'}
-<p class="sub2" style="margin:8px 0 0">A first report is a sensation in a body area with no report in the same area in the previous 30 days. It stays here for today; if it repeats or gets stronger it moves to Needs attention.</p></section>`;
-/* availability table */
-let filt='All';
-const sqRows=()=>ATH.filter(a=>filt==='All'||a.grp===filt).sort((a,b)=>a.name.localeCompare(b.name)).map(a=>{const m=a.m;
-  const v=AV[a.id],h=hints(a);
-  return`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(v.k,v.t)}</td>
-  <td class="mono">${f1(m.en7)}${dlt(m.en7,m.base)}</td><td class="mono ${recCls(m.rec.Match)}">${recTxt('Match',m.rec.Match)}</td><td class="mono">${a.fat.drop==null?'–':(a.fat.drop>=.8?'<span class="bd">▼ '+f1(a.fat.drop)+'</span>':'ok')}</td><td class="nt" style="max-width:300px">${h[0]||'<span class="bt">–</span>'}${h.length>1?` <span class="bt">+${h.length-1}</span>`:''}</td></tr>`}).join('');
 /* recovery: distribution across athletes */
 const RC=['Match','Strength','Speed'];
 const slbl=t=>t==='Match'?'competition':t.toLowerCase();
@@ -779,13 +758,12 @@ const cgPairs=[...MATCH].filter(j=>[...MATCH].some(k=>k>j&&k-j<=4)).length;
 /* event groups: runs, jumps, throws */
 const GROUPS=['Runs','Jumps','Throws'];
 const grpData=GROUPS.map(g=>{const M=ATH.filter(a=>a.grp===g),n=M.length;
-  const av=['Available','Manage load','Limited'].map(t=>M.filter(a=>AV[a.id].t===t).length);
   const en=me(M.flatMap(a=>a.m.l7)),base=avg(M.map(a=>a.m.base)),cmp=M.reduce((s,a)=>s+a.m.days7,0)/(n*7);
   const zc={};M.forEach(a=>win(a,0,29).filter(e=>isSym(e)&&ZONES[e.zones[0]]&&e.zones[0]!=='abdomen'&&e.zones[0]!=='whole').forEach(e=>{const z=ZONES[e.zones[0]];zc[z]=(zc[z]||0)+1}));
   const top=Object.entries(zc).sort((x,y)=>y[1]-x[1]).slice(0,3);
-  return{g,n,av,en,base,cmp,top,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
+  return{g,n,en,base,cmp,top,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
 const grpCard=`<section class="card pad" id="grp"><div class="ch"><h2>Event groups</h2><div class="note">runs, jumps and throws · energy and check-ins over 7 days, areas over 30 days</div></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Available · manage load · limited',`${d.av[0]} · ${d.av[1]} · ${d.av[2]}`],['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
 /* hints for the week */
 const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
 const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed','athletes named in Weekly load and recovery');
@@ -796,13 +774,33 @@ const weekHints=[
   `<b>The next 3 weeks</b> include 3 competitions in 8 days: ${upc[0][2].length?`${upc[0][2].length} athlete${upc[0][2].length===1?'':'s'} may not be back in 73 h (${upc[0][2].map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan extra recovery time between competitions for ${upc[0][2].length===1?'this athlete':'these athletes'}.`:'all athletes are expected to be back in time.'}`];
 const gTop=[...grpData].sort((a,b)=>b.fl/b.n-a.fl/a.n)[0];
 if(gTop&&gTop.fl)weekHints.push(`<b>${gTop.g}:</b> ${gTop.fl} of ${gTop.n} athletes are flagged in Needs attention, the highest share of any event group${gTop.top.length?`; the most reported area is the ${gTop.top[0][0].toLowerCase()}`:''}. <b>Recommendation:</b> review ${gTop.g.toLowerCase()} volume and technical load for the flagged athletes.`);
+/* summary for the coach: built automatically, people first, only what crosses a threshold */
+const lk=a=>`<button type="button" class="lk" data-open="${a.id}">${a.name}</button>`;
+const nameList=(xs,f,max=4)=>xs.slice(0,max).map(f).join(', ')+(xs.length>max?` and ${xs.length-max} more in Needs attention`:'');
+const whyUrg=a=>{const al=a.m.alerts;
+  if(al.length)return`${ZONES[al[0].zone].toLowerCase()}, ${al[0].days} of 7 days`;
+  const r=a.ent.filter(e=>e.i<=1&&isSym(e)&&tierOf(e)===2&&e.int>=7).sort((x,y)=>y.int-x.int)[0];
+  return r?`${(ZONES[r.zones[0]]||'whole body').toLowerCase()}, ${r.int}/10`:'red-flag sensation'};
+const sU=flagged.filter(x=>x.p.k==='urg'),sP=flagged.filter(x=>x.p.t==='Silent after pain'),sS=flagged.filter(x=>x.p.t==='Silent'),sW=flagged.filter(x=>x.p.k==='wat');
+const sLow=(enAll!=null&&enPrev!=null&&enAll-enPrev<=-.3)||c7-c7p<=-.1;
+const sumItems=[
+  sU.length&&`<b>Suggest a medical opinion:</b> ${nameList(sU,x=>`${lk(x.a)} (${whyUrg(x.a)})`)}.`,
+  sP.length&&`<b>Get in touch, no check-in after pain:</b> ${nameList(sP,x=>`${lk(x.a)} (${x.a.m.lastI} days, last ${x.a.m.last.int}/10)`)}. If the pain is still there, suggest a medical opinion.`,
+  sS.length&&`<b>Not checking in:</b> ${nameList(sS,x=>`${lk(x.a)} (${x.a.m.lastI} days)`)}.`,
+  sW.length&&`<b>Keep an eye on:</b> ${nameList(sW,x=>`${lk(x.a)} (${x.p.s.startsWith('averaging')?'sensations ':''}${x.p.s})`)}.`,
+  `<b>Overall:</b> ${sLow?'lower than usual':'in line with usual'}. Average energy ${f1(enAll)} this week against ${f1(enPrev)} over the previous four weeks; check-ins ${pct(c7)} this week against ${pct(c7p)} the week before.`].filter(Boolean);
+const sumHead=flagged.length?`<b>${flagged.length} of ${N} athletes</b> have something to follow up today. The other ${N-flagged.length} have no flag.`:`<b>Nothing to follow up today.</b> No athlete is flagged.`;
+const sumCard=`<section class="card pad" id="sum"><div class="ch"><h2>Summary</h2><div class="note">built automatically from today's check-ins</div></div>
+<p class="sumhead">${sumHead}</p>
+<ul class="hl">${sumItems.map(x=>`<li>${x}</li>`).join('')}</ul>
+<p class="sub2" style="margin:8px 0 0">It lists only what crosses a threshold, so a name that is not here has no flag today; that is not a guarantee that all is well. Select a name to open the athlete's detail.</p></section>`;
 /* athlete detail */
-function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
+function detail(a){const m=a.m,p=prio(a),h=hints(a);
   const bars=m.daily14.map((x,k)=>`<div class="day"><span class="bx" style="height:${x==null?3:Math.round(x/7*48)}px;background:${x==null?'var(--s-none)':'var(--bar)'}"></span><span class="dl">${k%7===0||k===13?dt(13-k).getUTCDate():'&nbsp;'}</span></div>`).join('');
   const resp=Object.entries(m.resp).filter(([,r])=>r.n>=3).sort((x,y)=>y[1].int-x[1].int).map(([t,r])=>[t==='Match'?'Competition':t,`${f1(r.int)} / 10 · energy ${f1(r.en)}`]);
   const words=Object.entries(m.words).sort((x,y)=>y[1]-x[1]).slice(0,6).map(([w,c])=>`<span class="word t${TIER[WORDS[w].s]}">${WORDS[w].n} · ${c}</span>`).join('');
   const cyc=m.cy.curve.map((x,b)=>[BINL[b],x==null?'–':(x>0?'+':x<0?'−':'')+Math.abs(x).toFixed(1)+(m.cy.dip&&m.cy.dip.bin===b?' ▼':'')]);
-  return overHead(a)+`<div class="over-b"><div class="callout"><b>${v.t}</b>${p?p.w:'No flag this week.'}</div>
+  return overHead(a)+`<div class="over-b"><div class="callout"><b>${p?p.t:'No flag'}</b>${p?p.w:'Nothing to report this week.'}</div>
   ${h.length?`<div><p class="lab">Technical Staff Guidance</p><ul class="hl">${h.map(x=>`<li>${x}</li>`).join('')}</ul></div>`:''}
   <div><p class="lab">Energy, last 14 days (1–7)</p><div class="days">${bars}</div></div>
   <div><p class="lab">This week</p>${kv([['Energy, 7 days',`${f1(m.en7)} (usual ${f1(m.base)})`],['Check-ins, 7 days',m.days7+' of 7 days'],['Check-ins, 30 days',pct(m.adh30)],['Usually checks in','in the '+m.slot],['Sensation intensity, 7 days',f1(m.int7)+' / 10']])}</div>
@@ -824,11 +822,13 @@ const topBand=[
   ["Today's session",todayS?(todayS.type==='Match'?'Competition':todayS.type):'Rest day',todayS?`${Math.round((todayS.e-todayS.s)*60)} min${mdK>=7?'':' · '+(mdK===0?'competition day':mdK+(mdK>1?' days':' day')+' after competition')}`:''],
   ['Checked in',String(chkToday),`of ${N}`],
   ['Session effort',`Planned ${PLAN_RPE} · Athletes' RPE ${AVG_RPE}`,`<span class="gauge" role="img" aria-label="Athletes' RPE ${AVG_RPE} against planned ${PLAN_RPE}"><span class="gfill" style="width:${AVG_RPE*10}%"></span><span class="gtick" style="left:calc(${PLAN_RPE*10}% - 1px)"></span></span>`]];
-$('#app').innerHTML=shell({label:'Head coach',nav:[['grp','Event groups'],['att','Needs attention'],['new','New today'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day']],
+$('#app').innerHTML=shell({label:'Head coach',nav:[['sum','Summary'],['grp','Event groups'],['att','Needs attention'],['rc','Recovery and load'],['cy','Energy by cycle day']],
   title:'Athletics',sub:'Track and field · Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
-<section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins and recovery time</div></div>
+${sumCard}
+
+<section class="card pad"><div class="ch"><h2>Technical Staff Recommendations</h2><div class="note">based on check-ins and recovery time</div></div>
 <ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
 
 ${grpCard}
@@ -837,11 +837,6 @@ ${grpCard}
 <div class="legend"><span><i style="background:var(--s0)"></i>no pain</span><span><i style="background:var(--s1)"></i>1–3</span><span><i style="background:var(--s2)"></i>4–6</span><span><i style="background:var(--s3)"></i>7–10</span><span><i style="border:1.5px dashed var(--s-none)"></i>no check-in</span></div>
 <div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th></tr></thead><tbody>${attRows}</tbody></table></div>
 <p class="sub2" style="margin:10px 0 0"><b>When a medical opinion is suggested:</b> the same area flagged on 3 or more of the last 7 days, a red-flag sensation of 7/10 or more in the last 48 hours, or no check-in for 4 days or more after a sensation of 6/10 or more. The suggestion is for the athlete (with her parents, if she is under 18) to ask a doctor or sports physician. BAB reports what athletes say in their check-ins: it does not assess injuries and is not medical advice.</p></section>
-
-${newCard}
-
-<section class="card" id="sq"><div class="ch"><h2>Availability</h2><div class="note">energy 1–7 against each athlete's own usual · recovery = time back to usual energy</div><div class="right"><div class="seg" id="seg">${['All','Runs','Jumps','Throws'].map(p=>`<button type="button" data-p="${p}" aria-pressed="${p==='All'}">${p}</button>`).join('')}</div></div></div>
-<div class="tw"><table><thead><tr><th>Athlete</th><th>Availability</th><th>Energy 7d</th><th>Recovery after competition</th><th>Season</th><th style="white-space:normal;min-width:220px;max-width:340px">Technical Staff Guidance</th></tr></thead><tbody id="sqb">${sqRows()}</tbody></table></div></section>
 
 <section class="card pad" id="rc"><div class="ch"><h2>Recovery time</h2><div class="note">hours until energy is back to the athlete's usual</div></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${RC.map(t=>{const d=rcDist(t);return`<div><div class="kv"><div><span>After ${slbl(t)} · median</span><b>${rcMed(t,d.med)}</b></div></div><div class="stk" style="margin:2px 0 4px">${d.parts.map(p=>`<i title="${p[0]}: ${p[1]}" style="width:${p[1]/d.n*100}%;background:${p[2]}"></i>`).join('')}</div><div class="legend" style="margin:0">${d.parts.filter(p=>p[1]).map(p=>`<span><i style="background:${p[2]}"></i>${p[0]} · ${p[1]}</span>`).join('')}</div></div>`}).join('')}</div>
@@ -870,7 +865,6 @@ ${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'
 line($('#cyc'),BINL,[{v:cyAvg,c:'#5346C4'}],[-1.5,.5,.5]);
 line($('#sf'),wLab,[{v:wFat,c:'#CE6A18'}],[-1.5,.5,.5]);
 wireCommon(id=>openOver(detail(ATH[id])));
-$('#seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filt=b.dataset.p;document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#sqb').innerHTML=sqRows()});
 </script>
 
 </body></html>
