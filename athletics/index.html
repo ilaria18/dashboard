@@ -645,7 +645,7 @@ function wireCommon(onRow){
   document.addEventListener('click',e=>{if(e.target.closest('button.act'))return;const tr=e.target.closest('tr[data-id]');if(tr)onRow(+tr.dataset.id)});
   document.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){if(e.target.closest&&e.target.closest('button.act'))return;const tr=e.target.closest&&e.target.closest('tr[data-id]');if(tr){e.preventDefault();onRow(+tr.dataset.id)}}});
   /* demo actions: shown as done on the page only, nothing is stored or sent */
-  document.addEventListener('click',e=>{const b=e.target.closest('button.act');if(!b||b.disabled)return;b.textContent=b.dataset.act==='seen'?'Seen ✓':'Notified ✓';b.classList.add('done');b.disabled=true});
+  document.addEventListener('click',e=>{const b=e.target.closest('button.act');if(!b||b.disabled)return;b.textContent='Seen ✓';b.classList.add('done');b.disabled=true});
   $('#nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;document.querySelectorAll('#nav a').forEach(x=>{x.classList.toggle('on',x===a)})});
 }
 const overHead=a=>`<div class="over-h"><div><h3>${a.name}</h3><div class="p">${a.pos} · ${a.grp} · ${a.age} years · ${a.ent.length} check-ins in 9 months · last ${a.m.lastI==null?'–':a.m.lastI===0?'today':a.m.lastI+' d ago'}</div></div><button class="x" type="button" aria-label="Close">✕</button></div>`;
@@ -729,17 +729,17 @@ const reportCell=(a,p)=>{
   const li=Math.min(...sy.map(e=>e.i)),day=sy.filter(e=>e.i===li).sort((x,y)=>y.int-x.int),top=day[0],pk=sy.reduce((m,e)=>e.int>m.int?e:m,top);
   const wt=phrases(day).slice(0,2).map((s,i)=>i?s[0].toLowerCase()+s.slice(1):s).join('; ');
   return`<div class="pain"><div class="z">${wt}</div><div class="w"><em>${top.int}/10</em> ${WHEN(li)}${pk.int>top.int?`, peak ${pk.int}/10 ${WHEN(pk.i)}`:''} · ${p.s}</div></div>`};
-const seenBtn=`<button class="btn act" type="button" data-act="seen">Seen</button>`,notifyBtn=`<button class="btn act" type="button" data-act="notify">Medical staff</button>`;
-const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td><td>${notifyBtn}</td></tr>`).join('');
+const seenBtn=`<button class="btn act" type="button" data-act="seen">Seen</button>`;
+const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td></tr>`).join('');
 const nSil=flagged.filter(x=>x.p.k==='sil'),attNote=[[flagged.filter(x=>x.p.k==='urg').length,'urgent'],[flagged.filter(x=>x.p.k==='wat').length,'watch'],[nSil.length,'silent'+(nSil.length&&nSil.every(x=>x.p.t==='Silent after pain')?' after pain':'')]].filter(x=>x[0]).map(x=>`<b>${x[0]}</b> ${x[1]}`).join(', ');
 /* new today: a sensation reported today in an area with no report in the previous 30 days, for athletes not already in Needs attention */
 const inAtt=new Set(flagged.map(x=>x.a.id));
 const newToday=ATH.filter(a=>!inAtt.has(a.id)).map(a=>{
   const e=a.ent.filter(x=>x.i===0&&isSym(x)&&ZG[x.zones[0]]).sort((x,y)=>y.int-x.int).find(x=>!a.ent.some(o=>o.i>=1&&o.i<=30&&isSym(o)&&ZG[o.zones[0]]===ZG[x.zones[0]]));
   return e?{a,e}:null}).filter(Boolean).sort((x,y)=>y.e.int-x.e.int||x.a.name.localeCompare(y.a.name));
-const newRows=newToday.map(({a,e})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill('fst','New')}</td><td><div class="pain"><div class="z">${phrases([e])[0]}</div><div class="w"><em>${e.int}/10</em> today · first report in this area in 30 days</div></div></td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td><td>${notifyBtn}</td></tr>`).join('');
+const newRows=newToday.map(({a,e})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill('fst','New')}</td><td><div class="pain"><div class="z">${phrases([e])[0]}</div><div class="w"><em>${e.int}/10</em> today · first report in this area in 30 days</div></div></td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td></tr>`).join('');
 const newCard=`<section class="card pad" id="new"><div class="ch"><h2>New today</h2><div class="note">${newToday.length?`<b>${newToday.length}</b> first report${newToday.length>1?'s':''}, not in Needs attention`:'no first reports today'}</div></div>
-${newToday.length?`<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th><th>Notify</th></tr></thead><tbody>${newRows}</tbody></table></div>`:'<p class="sub2">No first reports today.</p>'}
+${newToday.length?`<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th></tr></thead><tbody>${newRows}</tbody></table></div>`:'<p class="sub2">No first reports today.</p>'}
 <p class="sub2" style="margin:8px 0 0">A first report is a sensation in a body area with no report in the same area in the previous 30 days. It stays here for today; if it repeats or gets stronger it moves to Needs attention.</p></section>`;
 /* squad table */
 let filt='All';
@@ -837,7 +837,7 @@ ${grpCard}
 
 <section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note">${attNote} · select a row for the detail</div></div>
 <div class="legend"><span><i style="background:var(--s0)"></i>no pain</span><span><i style="background:var(--s1)"></i>1–3</span><span><i style="background:var(--s2)"></i>4–6</span><span><i style="background:var(--s3)"></i>7–10</span><span><i style="border:1.5px dashed var(--s-none)"></i>no check-in</span></div>
-<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th><th>Notify</th></tr></thead><tbody>${attRows}</tbody></table></div></section>
+<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th></tr></thead><tbody>${attRows}</tbody></table></div></section>
 
 ${newCard}
 
