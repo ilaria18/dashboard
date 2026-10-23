@@ -218,6 +218,7 @@ td:last-child{padding-right:0}
 .pain .z{font-weight:500;font-size:13.5px}
 .pain .w{color:var(--ink-2);font-size:12.5px;margin-top:1px;font-variant-numeric:tabular-nums}
 .pain .w em{font-style:normal;color:var(--ink);font-weight:500}
+.pain .medl{font-size:12.5px;font-weight:600;color:var(--rail);margin-top:4px}
 
 .strip{display:flex;gap:4px;align-items:center}
 .d{width:11px;height:11px;border-radius:99px;flex:none;display:block}
@@ -695,11 +696,12 @@ const c7=compl(0,6),c7p=compl(7,13);
 const checked=ATH.filter(a=>a.m.status!=='none'),green=checked.filter(a=>a.m.status==='ok').length;
 const enSq=me(ENT.filter(e=>e.i<=6)),enPrev=me(ENT.filter(e=>e.i>=7&&e.i<=34));
 const nx=NEXT[0];
-/* individual priority for the coach */
+/* individual priority for the coach. A medical opinion is suggested to the athlete only in the cases marked mt */
+const MED='Suggest she asks for a medical opinion',MEDS='Get in touch; if the pain is still there, suggest she asks for a medical opinion';
 function prio(a){const m=a.m,lastSym=m.last&&isSym(m.last)?m.last:null;
-  if(m.alerts.length)return{k:'urg',t:'Urgent',w:`Recurring flag on ${m.alerts[0].days} of the last 7 days. Talk to the medical staff.`,s:`flagged on ${m.alerts[0].days} of the last 7 days`,o:0};
-  if(m.redRecent)return{k:'urg',t:'Urgent',w:'Red-flag sensation in the last 48 hours.',s:'red-flag sensation in the last 48 hours',o:0};
-  if(m.days7===0||m.lastI>=4)return{k:'sil',t:lastSym&&lastSym.int>=6?'Silent after pain':'Silent',w:`No check-in for ${m.lastI} days${lastSym&&lastSym.int>=6?`, after a check-in at intensity ${lastSym.int}/10`:''}.`,s:`silent for ${m.lastI} days`,o:1};
+  if(m.alerts.length)return{k:'urg',t:'Urgent',w:`Recurring flag on ${m.alerts[0].days} of the last 7 days. ${MED}.`,s:`flagged on ${m.alerts[0].days} of the last 7 days`,o:0,mt:MED};
+  if(m.redRecent)return{k:'urg',t:'Urgent',w:`Red-flag sensation in the last 48 hours. ${MED}.`,s:'red-flag sensation in the last 48 hours',o:0,mt:MED};
+  if(m.days7===0||m.lastI>=4){const sp=!!(lastSym&&lastSym.int>=6);return{k:'sil',t:sp?'Silent after pain':'Silent',w:`No check-in for ${m.lastI} days${sp?`, after a check-in at intensity ${lastSym.int}/10`:''}.${sp?' '+MEDS+'.':''}`,s:`silent for ${m.lastI} days`,o:1,mt:sp?MEDS:''}}
   if(m.en7!=null&&m.base!=null&&m.en7<=m.base-1)return{k:'wat',t:'Watch',w:`Energy ${f1(m.en7)} this week against her usual ${f1(m.base)}.`,s:`energy ${f1(m.en7)} against her usual ${f1(m.base)}`,o:2};
   if(m.int7!=null&&m.int7>=5)return{k:'wat',t:'Watch',w:`Sensations averaging ${f1(m.int7)}/10 this week.`,s:`averaging ${f1(m.int7)}/10 this week`,o:2};
   return null}
@@ -723,12 +725,13 @@ const PH={sharp:z=>`Sharp pain in the ${z}`,unstable:(z,n)=>`The ${z} feel${n>1?
 /* one sentence per word; entries with the same word share it ("Heaviness in the left hamstring and the left heel") */
 const phrases=day=>{const g=[];day.forEach(e=>{const z=(ZONES[e.zones[0]]||'body').toLowerCase();let x=g.find(y=>y.w===e.w);if(!x)g.push(x={w:e.w,z:[]});if(!x.z.includes(z))x.z.push(z)});
   return g.map(x=>(PH[x.w]||(z=>`Sensation in the ${z}`))(x.z.slice(0,2).join(' and the '),Math.min(x.z.length,2)))};
+const medLine=p=>p.mt?`<div class="medl">${p.mt}</div>`:'';
 const reportCell=(a,p)=>{
   const sy=a.m.l7.filter(isSym);
-  if(!sy.length)return`<div class="pain"><div class="z">No sensation reported</div><div class="w">${p.s}</div></div>`;
+  if(!sy.length)return`<div class="pain"><div class="z">No sensation reported</div><div class="w">${p.s}</div>${medLine(p)}</div>`;
   const li=Math.min(...sy.map(e=>e.i)),day=sy.filter(e=>e.i===li).sort((x,y)=>y.int-x.int),top=day[0],pk=sy.reduce((m,e)=>e.int>m.int?e:m,top);
   const wt=phrases(day).slice(0,2).map((s,i)=>i?s[0].toLowerCase()+s.slice(1):s).join('; ');
-  return`<div class="pain"><div class="z">${wt}</div><div class="w"><em>${top.int}/10</em> ${WHEN(li)}${pk.int>top.int?`, peak ${pk.int}/10 ${WHEN(pk.i)}`:''} · ${p.s}</div></div>`};
+  return`<div class="pain"><div class="z">${wt}</div><div class="w"><em>${top.int}/10</em> ${WHEN(li)}${pk.int>top.int?`, peak ${pk.int}/10 ${WHEN(pk.i)}`:''} · ${p.s}</div>${medLine(p)}</div>`};
 const seenBtn=`<button class="btn act" type="button" data-act="seen">Seen</button>`;
 const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td></tr>`).join('');
 const nSil=flagged.filter(x=>x.p.k==='sil'),attNote=[[flagged.filter(x=>x.p.k==='urg').length,'urgent'],[flagged.filter(x=>x.p.k==='wat').length,'watch'],[nSil.length,'silent'+(nSil.length&&nSil.every(x=>x.p.t==='Silent after pain')?' after pain':'')]].filter(x=>x[0]).map(x=>`<b>${x[0]}</b> ${x[1]}`).join(', ');
@@ -808,7 +811,7 @@ function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
   <div><p class="lab">Energy by cycle day <span class="tag">against her usual</span></p>${cyc.some(x=>x[1]!=='–')?kv(cyc)+(m.cy.proj?`<p class="sub2" style="margin-top:8px">${fmtD(NEXT[0].i)}: about day ${m.cy.proj.cd+1} of her cycle${projLow(a,-NEXT[0].i)?', usually a low-energy phase':''}.</p>`:''):'<p class="sub2">Not enough check-ins by cycle day yet.</p>'}</div>
   <div><p class="lab">After sessions, last 90 days</p>${resp.length?kv(resp):'<p class="sub2">Not enough check-ins after sessions yet.</p>'}</div>
   <div><p class="lab">Words, last 30 days</p><div class="words">${words}</div></div>
-  <p class="sub2">Period dates and painkillers are shown to the medical staff only.</p></div>`}
+  <p class="sub2">Period dates and painkillers are not shown to the coach.</p></div>`}
 
 /* top band: day, today's session, check-ins today, session effort */
 const FDOW=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],FMON=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -832,7 +835,8 @@ ${grpCard}
 
 <section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note">${attNote} · select a row for the detail</div></div>
 <div class="legend"><span><i style="background:var(--s0)"></i>no pain</span><span><i style="background:var(--s1)"></i>1–3</span><span><i style="background:var(--s2)"></i>4–6</span><span><i style="background:var(--s3)"></i>7–10</span><span><i style="border:1.5px dashed var(--s-none)"></i>no check-in</span></div>
-<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th></tr></thead><tbody>${attRows}</tbody></table></div></section>
+<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th></tr></thead><tbody>${attRows}</tbody></table></div>
+<p class="sub2" style="margin:10px 0 0"><b>When a medical opinion is suggested:</b> the same area flagged on 3 or more of the last 7 days, a red-flag sensation of 7/10 or more in the last 48 hours, or no check-in for 4 days or more after a sensation of 6/10 or more. The suggestion is for the athlete (with her parents, if she is under 18) to ask a doctor or sports physician. BAB reports what athletes say in their check-ins: it does not assess injuries and is not medical advice.</p></section>
 
 ${newCard}
 
@@ -851,7 +855,7 @@ ${newCard}
 <section class="card pad" id="cy"><div class="ch"><h2>Energy by cycle day</h2><div class="note">average of all athletes against each athlete's usual (1–7 scale)</div></div><svg id="cyc"></svg>
 <div class="legend"><span><i style="background:#5346C4"></i>average change in energy · ${cyAth.length} athletes with enough data</span></div>
 ${kv([['Athletes with a clear low phase',`${cyDip} of ${N}`],...cyDipBin.filter(x=>x[1]).map(x=>['Lowest at cycle day '+x[0].replace('Day ',''),x[1]+' athletes']),...NEXT.map((n,k)=>['Likely low phase on '+fmtD(n.i),cyLowM[k].length?cyLowM[k].map(a=>a.name).join(', '):'none'])])}
-<div class="callout" style="margin-top:12px"><b>Energy only</b>The coach sees energy by cycle day. Period dates and painkillers stay with the medical staff.</div></section>
+<div class="callout" style="margin-top:12px"><b>Energy only</b>The coach sees energy by cycle day. Period dates and painkillers are not shown to the coach.</div></section>
 <section class="card pad" id="ft"><div class="ch"><h2>Season fatigue</h2><div class="note">energy on rested days against each athlete's own season level</div></div><svg id="sf"></svg>
 <div class="legend"><span><i style="background:#CE6A18"></i>change in rested energy, weekly</span></div>
 <p class="sub2" style="margin-top:8px">Rested days: no competition, Strength or Speed session in the previous 36 h.</p>
