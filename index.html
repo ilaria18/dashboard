@@ -803,7 +803,7 @@ $('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['s
   title:'U14 Women',sub:'Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
-<section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins, recovery time, the routine and the calendar</div></div>
+<section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins and recovery time</div></div>
 <ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
 
 <section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note">${attNote} · select a row for the detail</div></div>
@@ -842,7 +842,7 @@ ${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'
 
 
 
-<div class="privacy-note" style="font-size:12.5px;color:var(--ink-2);padding:0 2px">Sample data generated to show the layout. Every value is recalculated from the athletes' check-ins, the training routine and the match calendar entered by the club.</div>`});
+<div class="privacy-note" style="font-size:12.5px;color:var(--ink-2);padding:0 2px">Sample data generated to show the layout. Every value is recalculated from the athletes' check-ins.</div>`});
 line($('#mw'),mwkLab,[{v:mwk,c:'#0A7364'}],[3,7,1]);
 line($('#cyc'),BINL,[{v:cyAvg,c:'#5346C4'}],[-1.5,.5,.5]);
 line($('#sf'),wLab,[{v:wFat,c:'#CE6A18'}],[-1.5,.5,.5]);
