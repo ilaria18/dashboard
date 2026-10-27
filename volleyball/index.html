@@ -772,9 +772,9 @@ const grpData=GROUPS.map(g=>{const M=ATH.filter(a=>a.grp===g),n=M.length;
   const en=me(M.flatMap(a=>a.m.l7)),base=avg(M.map(a=>a.m.base)),cmp=M.reduce((s,a)=>s+a.m.days7,0)/(n*7);
   const zc={};M.forEach(a=>win(a,0,29).filter(e=>isSym(e)&&ZONES[e.zones[0]]&&e.zones[0]!=='abdomen'&&e.zones[0]!=='whole').forEach(e=>{const z=ZONES[e.zones[0]];zc[z]=(zc[z]||0)+1}));
   const top=Object.entries(zc).sort((x,y)=>y[1]-x[1]).slice(0,3);
-  return{g,n,av,en,base,cmp,top,an:M.filter(a=>ankleRep.some(x=>x.a.id===a.id)).length,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
+  return{g,n,av,en,base,cmp,top,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
 const grpCard=`<section class="card pad" id="grp"><div class="ch"><h2>Positions</h2><div class="note">setters, hitters, middles and liberos · energy and check-ins over 7 days, areas over 30 days</div></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Available · manage load · limited',`${d.av[0]} · ${d.av[1]} · ${d.av[2]}`],['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Ankle reports, 4/10 or more',`${d.an} of ${d.n}`],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Available · manage load · limited',`${d.av[0]} · ${d.av[1]} · ${d.av[2]}`],['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
 /* hints for the week */
 const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
 const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed','athletes named in Weekly load and recovery');
