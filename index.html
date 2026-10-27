@@ -679,7 +679,6 @@ const GAPS=[
  {id:'sm',d:'Sun',s:'Match',after:'Wednesday Speed',type:'Speed',gap:93.5,lim:60}];
 const ready=(a,type,lim)=>{const r=a.m.rec[type];return r==null?null:r<=lim};
 
-const projLow=(a,d)=>{const y=a.m.cy;if(y.flag!=='ok'||!y.medIv)return false;const cd=(y.sinceLast+d)%Math.round(y.medIv),bi=BINS.findIndex(([lo,hi])=>cd>=lo&&cd<=hi);return bi>=0&&y.curve[bi]!=null&&y.curve[bi]<=-.7};
 const N=ATH.length;
 const compl=(lo,hi)=>ATH.reduce((s,a)=>s+new Set(win(a,lo,hi).map(e=>e.i)).size,0)/(N*(hi-lo+1));
 const c7=compl(0,6),c7p=compl(7,13);
@@ -699,12 +698,11 @@ function hints(a){const h=[],m=a.m;
   if(m.rec.Match!=null&&m.rec.Match>=60)h.push('Slow to recover after matches: a lighter Tuesday session.');
   if(m.rec.Strength===99)h.push('Not back to usual 24 h after Strength: reduced volume in Wednesday\'s Speed session.');
   if(a.fat.drop!=null&&a.fat.drop>=.8)h.push('Rested energy has slid over the last 4 weeks: an extra recovery day or fewer minutes.');
-  if(projLow(a,-NEXT[0].i))h.push('Likely in a low-energy phase on '+fmtD(NEXT[0].i)+': plan warm-up and substitutions.');
   if(m.growth)h.push('Pattern often seen in growth spurts: watch jump and sprint volume. Medical staff informed.');
   return h}
 function avail(a){const p=prio(a);
   if(p&&p.k==='urg')return{k:'urg',t:'Limited'};
-  if(p||a.sigs.some(x=>['pk','gr'].includes(x.k))||(a.fat.drop!=null&&a.fat.drop>=.8)||projLow(a,-NEXT[0].i))return{k:'wat',t:'Manage load'};
+  if(p||a.sigs.some(x=>['pk','gr'].includes(x.k))||(a.fat.drop!=null&&a.fat.drop>=.8))return{k:'wat',t:'Manage load'};
   return{k:'okg',t:'Available'}}
 const AV=ATH.map(a=>avail(a)),nAv=AV.filter(x=>x.t==='Available').length,nMg=AV.filter(x=>x.t==='Manage load').length,nLm=AV.filter(x=>x.t==='Limited').length;
 /* needs attention: what she reports (words and intensity, never the body area), last 7 days, actions */
@@ -747,11 +745,6 @@ const wFat=W.map(w=>{const l=ATH.flatMap(a=>a.fat.ref==null?[]:a.ent.filter(e=>e
 const fatList=ATH.filter(a=>a.fat.drop!=null&&a.fat.drop>=.8).sort((x,y)=>y.fat.drop-x.fat.drop);
 const wEn=W.map(w=>{const l=ENT.filter(e=>e.i>=w*7&&e.i<=w*7+6);return l.length>20?me(l):null}),wCo=W.map(w=>compl(w*7,w*7+6)*100);
 const wLab=W.map((w,k)=>k%6===0?weekStart(w):'');
-/* cycle: squad energy by cycle day */
-const cyAth=ATH.filter(a=>a.m.cy.curve.some(v=>v!=null));
-const cyAvg=BINS.map((_,b)=>avg(cyAth.map(a=>a.m.cy.curve[b])));
-const cyDip=ATH.filter(a=>a.m.cy.dip).length,cyLow=ATH.filter(a=>projLow(a,-NEXT[0].i)),cyLowM=NEXT.map(n=>ATH.filter(a=>projLow(a,-n.i)));
-const cyDipBin=BINL.map((l,b)=>[l,ATH.filter(a=>a.m.cy.dip&&a.m.cy.dip.bin===b).length]);
 /* match-week rhythm: Sunday matches that are not part of a congested spell */
 const sun=[...MATCH].filter(i=>dow(i)===6&&!CONG[i]&&i>=3);
 const offs=[-4,-3,-2,-1,0,1,2,3];
@@ -765,21 +758,20 @@ const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed',
 const weekHints=[
   `<b>Tuesday Strength</b> comes ${Math.round(gapRows[0].g.gap)} h after the match, and ${gapRows[0].rd} of ${gapRows[0].rd+gapRows[0].nr} athletes are usually back to their usual energy by then. <b>Recommendation:</b> ${recTxt2(gapRows[0].hint)}`,
   `<b>Wednesday Speed</b> comes ${gapRows[1].g.gap} h after Strength, and ${gapRows[1].nr} of ${gapRows[1].rd+gapRows[1].nr} athletes are usually not back yet. <b>Recommendation:</b> ${gapRows[1].sh<.6?'lighten Strength, or run Speed with reduced volume for the athletes named in Weekly load and recovery, to protect Sunday.':'give the athletes named in Weekly load and recovery a reduced Speed volume.'}`,
-  `<b>Sunday match:</b> ${cyLow.length?`${cyLow.length} athlete${cyLow.length>1?'s are':' is'} likely in a low-energy phase (${cyLow.map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan warm-up and substitutions.`:'no athlete is projected in a low-energy phase. <b>Recommendation:</b> no change to the plan.'}`,
   `<b>The next 3 weeks</b> include 3 matches in 8 days: ${upc[0][2].length?`${upc[0][2].length} athlete${upc[0][2].length===1?'':'s'} may not be back in 73 h (${upc[0][2].map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan rotation and extra recovery time for ${upc[0][2].length===1?'this athlete':'these athletes'}.`:'all athletes are expected to be back in time.'}`];
 /* athlete detail */
 function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
   const bars=m.daily14.map((x,k)=>`<div class="day"><span class="bx" style="height:${x==null?3:Math.round(x/7*48)}px;background:${x==null?'var(--s-none)':'var(--bar)'}"></span><span class="dl">${k%7===0||k===13?dt(13-k).getUTCDate():'&nbsp;'}</span></div>`).join('');
   const resp=Object.entries(m.resp).filter(([,r])=>r.n>=3).sort((x,y)=>y[1].int-x[1].int).map(([t,r])=>[t,`${f1(r.int)} / 10 · energy ${f1(r.en)}`]);
   const words=Object.entries(m.words).sort((x,y)=>y[1]-x[1]).slice(0,6).map(([w,c])=>`<span class="word t${TIER[WORDS[w].s]}">${WORDS[w].n} · ${c}</span>`).join('');
-  const cyc=m.cy.curve.map((x,b)=>[BINL[b],x==null?'–':(x>0?'+':x<0?'−':'')+Math.abs(x).toFixed(1)+(m.cy.dip&&m.cy.dip.bin===b?' ▼':'')]);
+  const e0=m.daily14[13],sg=x=>{const r=Math.round(x*10)/10;return(r>0?'+':r<0?'−':'')+Math.abs(r).toFixed(1)};
+  const todayTxt=e0!=null?`${f1(e0)} · ${sg(e0-m.base)} against her usual`:'No check-in today';
   return overHead(a)+`<div class="over-b"><div class="callout"><b>${v.t}</b>${p?p.w:'No flag this week.'}</div>
   ${h.length?`<div><p class="lab">Technical Staff Guidance</p><ul class="hl">${h.map(x=>`<li>${x}</li>`).join('')}</ul></div>`:''}
   <div><p class="lab">Energy, last 14 days (1–7)</p><div class="days">${bars}</div></div>
-  <div><p class="lab">This week</p>${kv([['Energy, 7 days',`${f1(m.en7)} (usual ${f1(m.base)})`],['Check-ins, 7 days',m.days7+' of 7 days'],['Check-ins, 30 days',pct(m.adh30)],['Usually checks in','in the '+m.slot],['Sensation intensity, 7 days',f1(m.int7)+' / 10']])}</div>
+  <div><p class="lab">This week</p>${kv([['Energy today',todayTxt],['Energy, 7 days',`${f1(m.en7)} (usual ${f1(m.base)})`],['Check-ins, 7 days',m.days7+' of 7 days'],['Check-ins, 30 days',pct(m.adh30)],['Usually checks in','in the '+m.slot],['Sensation intensity, 7 days',f1(m.int7)+' / 10']])}</div>
   <div><p class="lab">Recovery time <span class="tag">time to usual energy</span></p>${kv(RC.map(t=>['After '+t.toLowerCase(),`<span class="${recCls(m.rec[t])}">${recTxt(t,m.rec[t])}</span>`]))}</div>
   <div><p class="lab">Season</p>${kv([['Rested energy, last 4 weeks',f1(a.fat.now)],['Rested energy, 2–6 months ago',f1(a.fat.ref)],['Change',a.fat.drop==null?'–':(a.fat.drop>0?'▼ ':'▲ ')+f1(Math.abs(a.fat.drop))]])}</div>
-  <div><p class="lab">Energy by cycle day <span class="tag">against her usual</span></p>${cyc.some(x=>x[1]!=='–')?kv(cyc)+(m.cy.proj?`<p class="sub2" style="margin-top:8px">${fmtD(NEXT[0].i)}: about day ${m.cy.proj.cd+1} of her cycle${projLow(a,-NEXT[0].i)?', usually a low-energy phase':''}.</p>`:''):'<p class="sub2">Not enough check-ins by cycle day yet.</p>'}</div>
   <div><p class="lab">After sessions, last 90 days</p>${resp.length?kv(resp):'<p class="sub2">Not enough check-ins after sessions yet.</p>'}</div>
   <div><p class="lab">Words, last 30 days</p><div class="words">${words}</div></div>
   <p class="sub2">Period dates and painkillers are shown to the medical staff only.</p></div>`}
@@ -795,7 +787,7 @@ const topBand=[
   ["Today's session",todayS?`${mdLab?mdLab+' · ':''}${todayS.type}`:'Rest day',todayS?`${Math.round((todayS.e-todayS.s)*60)} min`:''],
   ['Checked in',String(chkToday),`of ${N}`],
   ['Session effort',`Planned ${PLAN_RPE} · Team RPE ${TEAM_RPE}`,`<span class="gauge" role="img" aria-label="Team RPE ${TEAM_RPE} against planned ${PLAN_RPE}"><span class="gfill" style="width:${TEAM_RPE*10}%"></span><span class="gtick" style="left:calc(${PLAN_RPE*10}% - 1px)"></span></span>`]];
-$('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day']],
+$('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['sq','Availability'],['rc','Recovery and load']],
   title:'U14 Women',sub:'Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
@@ -818,16 +810,10 @@ $('#app').innerHTML=shell({label:'Head coach',nav:[['att','Needs attention'],['s
 <div class="callout" style="margin-top:12px"><b>Congested weeks</b>${upc.map(u=>`${u[0]} (${Math.round(u[1])} h): ${u[2].length} not usually back${u[2].length?' – '+u[2].map(a=>a.name.split(' ')[1]).join(', '):''}.`).join(' ')}</div></section>
 
 <div class="grid">
-<section class="card pad" id="cy"><div class="ch"><h2>Energy by cycle day</h2><div class="note">squad average against each athlete's usual (1–7 scale)</div></div><svg id="cyc"></svg>
-<div class="legend"><span><i style="background:#5346C4"></i>average change in energy · ${cyAth.length} athletes with enough data</span></div>
-${kv([['Athletes with a clear low phase',`${cyDip} of ${N}`],...cyDipBin.filter(x=>x[1]).map(x=>['Lowest at cycle day '+x[0].replace('Day ',''),x[1]+' athletes']),...NEXT.map((n,k)=>['Likely low phase on '+fmtD(n.i),cyLowM[k].length?cyLowM[k].map(a=>a.name).join(', '):'none'])])}
-<div class="callout" style="margin-top:12px"><b>Energy only</b>The coach sees energy by cycle day. Period dates and painkillers stay with the medical staff.</div></section>
 <section class="card pad" id="ft"><div class="ch"><h2>Season fatigue</h2><div class="note">energy on rested days against each athlete's own season level</div></div><svg id="sf"></svg>
 <div class="legend"><span><i style="background:#CE6A18"></i>change in rested energy, weekly</span></div>
 <p class="sub2" style="margin-top:8px">Rested days: no match, Strength or Speed session in the previous 36 h.</p>
-${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'])):'<p class="sub2">No athlete below her season level.</p>'}</section></div>
-
-<div class="grid">
+${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'])):'<p class="sub2">No athlete below her season level.</p>'}</section>
 <section class="card pad" id="wk"><div class="ch"><h2>Match week rhythm</h2><div class="note">squad energy around ${sun.length} matches (1–7)</div></div><svg id="mw"></svg>
 <div class="legend"><span><i style="background:#0A7364"></i>average energy · MD = match day</span></div></section></div>
 </div>
@@ -837,7 +823,6 @@ ${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'
 
 <div class="privacy-note" style="font-size:12.5px;color:var(--ink-2);padding:0 2px">Sample data generated to show the layout. Every value is recalculated from the athletes' check-ins.</div>`});
 line($('#mw'),mwkLab,[{v:mwk,c:'#0A7364'}],[3,7,1]);
-line($('#cyc'),BINL,[{v:cyAvg,c:'#5346C4'}],[-1.5,.5,.5]);
 line($('#sf'),wLab,[{v:wFat,c:'#CE6A18'}],[-1.5,.5,.5]);
 wireCommon(id=>openOver(detail(ATH[id])));
 $('#seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filt=b.dataset.p;document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#sqb').innerHTML=sqRows()});
