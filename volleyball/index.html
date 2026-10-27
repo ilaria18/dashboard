@@ -217,7 +217,6 @@ td:last-child{padding-right:0}
 .pain .z{font-weight:500;font-size:13.5px}
 .pain .w{color:var(--ink-2);font-size:12.5px;margin-top:1px;font-variant-numeric:tabular-nums}
 .pain .w em{font-style:normal;color:var(--ink);font-weight:500}
-.pain .medl{font-size:12.5px;font-weight:600;color:var(--rail);margin-top:4px}
 .lk{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--rail);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(0,75,78,.35);text-underline-offset:2px}.lk:hover{text-decoration-color:var(--rail)}.lk:focus-visible{outline:2px solid var(--lav);outline-offset:2px;border-radius:3px}
 .sumhead{font-size:14.5px;line-height:1.5;margin:0 0 6px;color:var(--ink)}.sumhead b{font-family:var(--disp)}
 
@@ -486,7 +485,7 @@ Object.assign(ZONES,{shoulderL:'Left shoulder',shoulderR:'Right shoulder',wristL
 Object.assign(ZG,{shoulderL:'Shoulder',shoulderR:'Shoulder',wristL:'Wrist',wristR:'Wrist'});
 const LIMB=Object.keys(ZG);
 /* typical areas by position group, so the sample data looks like volleyball */
-const ZBY={Setters:['wristR','wristL','shoulderR','shoulderR','kneeL','kneeR','lumbar','ankleL','ankleR'],Liberos:['kneeL','kneeR','kneeL','kneeR','hip','hip','lumbar','ankleL','ankleR','hamL','hamR','shoulderR'],Hitters:['shoulderR','shoulderR','shoulderL','kneeL','kneeR','kneeL','kneeR','ankleL','ankleR','lumbar','lumbar','hip'],Middles:['kneeL','kneeR','kneeL','kneeR','ankleL','ankleR','shoulderR','shoulderL','lumbar','heelL','heelR']};
+const ZBY={Setters:['ankleL','ankleR','wristR','wristL','shoulderR','kneeL','kneeR','lumbar'],Liberos:['ankleL','ankleR','ankleL','ankleR','kneeL','kneeR','hip','hip','lumbar','hamL','hamR'],Hitters:['ankleL','ankleR','ankleL','ankleR','shoulderR','shoulderR','shoulderL','kneeL','kneeR','kneeL','kneeR','lumbar','hip'],Middles:['ankleL','ankleR','ankleL','ankleR','kneeL','kneeR','kneeL','kneeR','shoulderR','shoulderL','lumbar','heelL','heelR']};
 const TRIG=['movement','pressure','rest'];
 const SEFF={Match:3,Strength:1.5,Jumps:1.5,Technique:.8,Recovery:.2,Activation:.3};
 const ROUT=[{type:'Recovery',s:10,e:11.25},{type:'Strength',s:16,e:17.5},{type:'Jumps',s:16,e:17.5},{type:'Technique',s:16,e:17.75},{type:'Activation',s:11,e:12},null,null];
@@ -496,14 +495,14 @@ const SESS=Array.from({length:DAYS+4},(_,i)=>MATCH.has(i)?(dow(i)===6?{type:'Mat
 const CONG=new Array(DAYS).fill(false);
 MATCH.forEach(j=>{if([...MATCH].some(k=>k>j&&k-j<=4))for(let i=Math.max(0,j-3);i<=j;i++)CONG[i]=true});
 const NEXT=[{i:-6,home:1,t:'15:00'},{i:-13,home:0,t:'15:00'},{i:-16,home:1,t:'18:00'},{i:-20,home:0,t:'15:00'}];
-const NAMES=['Anna Pellegrini','Marta Colombo','Sara Brambilla','Elisa Cattaneo','Giulia Gamba','Chiara Locatelli','Beatrice Mazzoleni','Laura Rota','Francesca Vitali','Silvia Carrara','Alice Bonomi','Irene Pesenti','Martina Algeri','Valentina Zanchi','Camilla Ghisleni','Noemi Previtali','Elena Cortinovis','Giada Belotti','Aurora Plebani','Rebecca Noris','Sofia Invernizzi','Emma Caironi','Lucrezia Cividini','Ginevra Bettinelli'];
-const POS=['Setter','Setter','Outside hitter','Outside hitter','Outside hitter','Outside hitter','Middle blocker','Middle blocker','Middle blocker','Middle blocker','Middle blocker','Outside hitter','Opposite','Opposite','Libero','Setter','Libero','Middle blocker','Outside hitter','Setter','Opposite','Libero','Middle blocker','Outside hitter'];
+const NAMES=['Anna Pellegrini','Marta Colombo','Sara Brambilla','Elisa Cattaneo','Giulia Gamba','Chiara Locatelli','Beatrice Mazzoleni','Laura Rota','Francesca Vitali','Silvia Carrara','Alice Bonomi','Irene Pesenti','Martina Algeri'];
+const POS=['Setter','Outside hitter','Outside hitter','Libero','Outside hitter','Setter','Libero','Middle blocker','Middle blocker','Opposite','Outside hitter','Opposite','Middle blocker'];
 const GRP=POS.map(p=>({Setter:'Setters',Libero:'Liberos','Outside hitter':'Hitters',Opposite:'Hitters','Middle blocker':'Middles'}[p]));
-const ATH=NAMES.map((name,id)=>({id,name,pos:POS[id],grp:GRP[id],age:13+Math.floor(rnd()*4),base:4.7+rnd()*1.1,p:.62+rnd()*.3,sens:.1+rnd()*1.6,frag:.012+rnd()*.03,weak:[pick(ZBY[GRP[id]]),pick(ZBY[GRP[id]])],tau:14+rnd()*30,pms:rnd()<.35,ent:[],pk:new Set()}));
-ATH[5].base=3.4;ATH[7].age=13;ATH[12].age=14;ATH[21].age=15;ATH[7].growth='heelR';ATH[12].growth='kneeR';
+const ATH=NAMES.map((name,id)=>({id,name,pos:POS[id],grp:GRP[id],age:13+Math.floor(rnd()*2),base:4.7+rnd()*1.1,p:.62+rnd()*.3,sens:.1+rnd()*1.6,frag:.012+rnd()*.03,weak:[pick(ZBY[GRP[id]]),pick(ZBY[GRP[id]])],tau:14+rnd()*30,pms:rnd()<.35,ent:[],pk:new Set()}));
+ATH[5].base=3.4;ATH[7].age=13;ATH[12].age=14;ATH[7].growth='heelR';ATH[12].growth='kneeR';
 const median=a=>{const s=a.filter(v=>v!=null).sort((x,y)=>x-y);if(!s.length)return null;const m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
 /* period starts: regular cycles with small jitter, two irregular athletes, one with no period for 110+ days */
-const IRR=new Set([9,17]),AMEN=new Set([21]);
+const IRR=new Set([9,11]),AMEN=new Set([6]);
 ATH.forEach(a=>{if(a.age===13&&rnd()<.35)IRR.add(a.id)});
 ATH.forEach(a=>{const L0=27+Math.floor(rnd()*6);let d=DAYS-1+Math.floor(rnd()*L0);a.ons=[];
   while(d>=0){if(AMEN.has(a.id)&&d<110)break;if(d<DAYS)a.ons.push(d);d-=Math.max(18,L0+(IRR.has(a.id)?Math.round((rnd()-.5)*20):Math.round((rnd()-.5)*4)))}});
@@ -539,13 +538,12 @@ ATH.forEach(a=>{
 const force=(a,i,w,int,en,zone,trig,t=19.8)=>{a.ent=a.ent.filter(e=>e.i!==i);const ls=lastSess(i,t),cd=cdOf(a,i);a.ent.push({i,t,w,int,en,zones:[zone],trig,per:cd!=null&&cd<5,cd,ph:'none',stype:null,ls,lh:lastHard(i,t)})};
 [[0,'sharp',7],[1,'sharp',6],[2,'sharp',7],[3,'sharp',6],[4,'sharp',7]].forEach(([i,w,int])=>force(ATH[2],i,w,int,4,'ankleR','movement'));
 [0,1,3,5].forEach(i=>force(ATH[8],i,'unstable',5,4,'kneeL','movement'));
-[0,1,2].forEach(i=>force(ATH[11],i,'heavy',4,2,'thighL','pressure'));
-[0,2,4].forEach(i=>force(ATH[16],i,'sharp',6,3,'hip','rest'));
-[0,1,3].forEach(i=>force(ATH[18],i,'sharp',5,4,'shoulderR','movement'));
 [0,3,4,5,7,10,11].forEach(i=>force(ATH[7],i,i%2?'sore':'tight',4,4,'heelR','movement'));
 [1,4,5,6,11,12,13].forEach(i=>force(ATH[12],i,i%2?'sore':'tight',4,4,'kneeR','movement'));
-[0,1,2,3,4,5].forEach(i=>{ATH[14].ent=ATH[14].ent.filter(e=>e.i!==i)});
-ATH[14].ent.push({i:6,t:20.5,w:'sore',int:6,en:3,zones:['calfR'],trig:'movement',per:false,cd:cdOf(ATH[14],6),ph:'none',stype:null,ls:null,lh:lastHard(6,20.5)});
+[0,1,2,3,4,5].forEach(i=>{ATH[9].ent=ATH[9].ent.filter(e=>e.i!==i)});
+ATH[9].ent.push({i:6,t:20.5,w:'sore',int:6,en:3,zones:['ankleL'],trig:'movement',per:false,cd:cdOf(ATH[9],6),ph:'none',stype:null,ls:null,lh:lastHard(6,20.5)});
+[0,1,2,4].forEach(i=>force(ATH[4],i,'sore',5,4,'shoulderR','movement'));
+[1,2,4,5].forEach(i=>force(ATH[6],i,'sore',3,5,'ankleL','movement'));
 [1,3,6,9,12].forEach(i=>ATH[3].pk.add(i));[2,5,8,11].forEach(i=>ATH[8].pk.add(i));
 /* ================= Metrics ================= */
 const isSym=e=>!WORDS[e.w].pos,tierOf=e=>TIER[WORDS[e.w].s];
@@ -645,7 +643,7 @@ function wireCommon(onRow){
   document.addEventListener('click',e=>{if(e.target.closest('button.act'))return;const tr=e.target.closest('tr[data-id]');if(tr)onRow(+tr.dataset.id)});
   document.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){if(e.target.closest&&e.target.closest('button.act'))return;const tr=e.target.closest&&e.target.closest('tr[data-id]');if(tr){e.preventDefault();onRow(+tr.dataset.id)}}});
   /* demo actions: shown as done on the page only, nothing is stored or sent */
-  document.addEventListener('click',e=>{const b=e.target.closest('button.act');if(!b||b.disabled)return;b.textContent='Seen ✓';b.classList.add('done');b.disabled=true});
+  document.addEventListener('click',e=>{const b=e.target.closest('button.act');if(!b||b.disabled)return;b.textContent=b.dataset.act==='seen'?'Seen ✓':'Notified ✓';b.classList.add('done');b.disabled=true});
   $('#nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;document.querySelectorAll('#nav a').forEach(x=>{x.classList.toggle('on',x===a)})});
 }
 const overHead=a=>`<div class="over-h"><div><h3>${a.name}</h3><div class="p">${a.pos} · ${a.age} years · ${a.ent.length} check-ins in 9 months · last ${a.m.lastI==null?'–':a.m.lastI===0?'today':a.m.lastI+' d ago'}</div></div><button class="x" type="button" aria-label="Close">✕</button></div>`;
@@ -695,12 +693,11 @@ const c7=compl(0,6),c7p=compl(7,13);
 const checked=ATH.filter(a=>a.m.status!=='none'),green=checked.filter(a=>a.m.status==='ok').length;
 const enAll=me(ENT.filter(e=>e.i<=6)),enPrev=me(ENT.filter(e=>e.i>=7&&e.i<=34));
 const nx=NEXT[0];
-/* individual priority for the coach. A medical opinion is suggested to the athlete only in the cases marked mt */
-const MED='Suggest she asks for a medical opinion',MEDS='Get in touch; if the pain is still there, suggest she asks for a medical opinion';
+/* individual priority for the coach */
 function prio(a){const m=a.m,lastSym=m.last&&isSym(m.last)?m.last:null;
-  if(m.alerts.length)return{k:'urg',t:'Urgent',w:`Recurring flag on ${m.alerts[0].days} of the last 7 days. ${MED}.`,s:`flagged on ${m.alerts[0].days} of the last 7 days`,o:0,mt:MED};
-  if(m.redRecent)return{k:'urg',t:'Urgent',w:`Red-flag sensation in the last 48 hours. ${MED}.`,s:'red-flag sensation in the last 48 hours',o:0,mt:MED};
-  if(m.days7===0||m.lastI>=4){const sp=!!(lastSym&&lastSym.int>=6);return{k:'sil',t:sp?'Silent after pain':'Silent',w:`No check-in for ${m.lastI} days${sp?`, after a check-in at intensity ${lastSym.int}/10`:''}.${sp?' '+MEDS+'.':''}`,s:`silent for ${m.lastI} days`,o:1,mt:sp?MEDS:''}}
+  if(m.alerts.length)return{k:'urg',t:'Urgent',w:`Recurring flag on ${m.alerts[0].days} of the last 7 days. Talk to the medical staff.`,s:`flagged on ${m.alerts[0].days} of the last 7 days`,o:0};
+  if(m.redRecent)return{k:'urg',t:'Urgent',w:'Red-flag sensation in the last 48 hours.',s:'red-flag sensation in the last 48 hours',o:0};
+  if(m.days7===0||m.lastI>=4)return{k:'sil',t:lastSym&&lastSym.int>=6?'Silent after pain':'Silent',w:`No check-in for ${m.lastI} days${lastSym&&lastSym.int>=6?`, after a check-in at intensity ${lastSym.int}/10`:''}.`,s:`silent for ${m.lastI} days`,o:1};
   if(m.en7!=null&&m.base!=null&&m.en7<=m.base-1)return{k:'wat',t:'Watch',w:`Energy ${f1(m.en7)} this week against her usual ${f1(m.base)}.`,s:`energy ${f1(m.en7)} against her usual ${f1(m.base)}`,o:2};
   if(m.int7!=null&&m.int7>=5)return{k:'wat',t:'Watch',w:`Sensations averaging ${f1(m.int7)}/10 this week.`,s:`averaging ${f1(m.int7)}/10 this week`,o:2};
   return null}
@@ -710,7 +707,7 @@ function hints(a){const h=[],m=a.m;
   if(m.rec.Strength===99)h.push('Not back to usual 24 h after Strength: reduced volume in Wednesday\'s Jumps session.');
   if(a.fat.drop!=null&&a.fat.drop>=.8)h.push('Rested energy has slid over the last 4 weeks: an extra recovery day or lower volume.');
   if(projLow(a,-NEXT[0].i))h.push('Likely in a low-energy phase on '+fmtD(NEXT[0].i)+': plan warm-up and playing time.');
-  if(m.growth)h.push('Pattern often seen in growth spurts: watch jump volume.');
+  if(m.growth)h.push('Pattern often seen in growth spurts: watch jump volume. Medical staff informed.');
   return h}
 function avail(a){const p=prio(a);
   if(p&&p.k==='urg')return{k:'urg',t:'Limited'};
@@ -724,15 +721,14 @@ const PH={sharp:z=>`Sharp pain in the ${z}`,unstable:(z,n)=>`The ${z} feel${n>1?
 /* one sentence per word; entries with the same word share it ("Heaviness in the left hamstring and the left heel") */
 const phrases=day=>{const g=[];day.forEach(e=>{const z=(ZONES[e.zones[0]]||'body').toLowerCase();let x=g.find(y=>y.w===e.w);if(!x)g.push(x={w:e.w,z:[]});if(!x.z.includes(z))x.z.push(z)});
   return g.map(x=>(PH[x.w]||(z=>`Sensation in the ${z}`))(x.z.slice(0,2).join(' and the '),Math.min(x.z.length,2)))};
-const medLine=p=>p.mt?`<div class="medl">${p.mt}</div>`:'';
 const reportCell=(a,p)=>{
   const sy=a.m.l7.filter(isSym);
-  if(!sy.length)return`<div class="pain"><div class="z">No sensation reported</div><div class="w">${p.s}</div>${medLine(p)}</div>`;
+  if(!sy.length)return`<div class="pain"><div class="z">No sensation reported</div><div class="w">${p.s}</div></div>`;
   const li=Math.min(...sy.map(e=>e.i)),day=sy.filter(e=>e.i===li).sort((x,y)=>y.int-x.int),top=day[0],pk=sy.reduce((m,e)=>e.int>m.int?e:m,top);
   const wt=phrases(day).slice(0,2).map((s,i)=>i?s[0].toLowerCase()+s.slice(1):s).join('; ');
-  return`<div class="pain"><div class="z">${wt}</div><div class="w"><em>${top.int}/10</em> ${WHEN(li)}${pk.int>top.int?`, peak ${pk.int}/10 ${WHEN(pk.i)}`:''} · ${p.s}</div>${medLine(p)}</div>`};
-const seenBtn=`<button class="btn act" type="button" data-act="seen">Seen</button>`;
-const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td></tr>`).join('');
+  return`<div class="pain"><div class="z">${wt}</div><div class="w"><em>${top.int}/10</em> ${WHEN(li)}${pk.int>top.int?`, peak ${pk.int}/10 ${WHEN(pk.i)}`:''} · ${p.s}</div></div>`};
+const seenBtn=`<button class="btn act" type="button" data-act="seen">Seen</button>`,notifyBtn=`<button class="btn act" type="button" data-act="notify">Medical staff</button>`;
+const attRows=flagged.map(({a,p})=>`<tr data-id="${a.id}" tabindex="0"><td><div class="who-cell"><div class="n">${a.name}</div><div class="p">${a.pos} · ${a.age}</div></div></td><td>${pill(p.k,p.t)}</td><td>${reportCell(a,p)}</td><td>${strip(a.m.strip7)}</td><td>${seenBtn}</td><td>${notifyBtn}</td></tr>`).join('');
 const nSil=flagged.filter(x=>x.p.k==='sil'),attNote=[[flagged.filter(x=>x.p.k==='urg').length,'urgent'],[flagged.filter(x=>x.p.k==='wat').length,'watch'],[nSil.length,'silent'+(nSil.length&&nSil.every(x=>x.p.t==='Silent after pain')?' after pain':'')]].filter(x=>x[0]).map(x=>`<b>${x[0]}</b> ${x[1]}`).join(', ');
 /* squad table */
 let filt='All';
@@ -772,14 +768,16 @@ const cg=ENT.filter(e=>CONG[e.i]),nc=ENT.filter(e=>!CONG[e.i]),share=l=>l.filter
 const cgPairs=[...MATCH].filter(j=>[...MATCH].some(k=>k>j&&k-j<=4)).length;
 /* positions: setters, hitters, middles, liberos */
 const GROUPS=['Setters','Hitters','Middles','Liberos'];
+/* ankles matter most in volleyball: ankle sensations of 4/10 or more on 2 or more of the last 7 days, or a sharp or unstable ankle */
+const ankleRep=ATH.map(a=>{const es=a.ent.filter(e=>e.i<=6&&isSym(e)&&e.int>=4&&e.zones.some(z=>ZG[z]==='Ankle'));if(!es.length||(new Set(es.map(e=>e.i)).size<2&&!es.some(e=>tierOf(e)===2)))return null;const zs=[...new Set(es.flatMap(e=>e.zones.filter(z=>ZG[z]==='Ankle')))];return{a,days:new Set(es.map(e=>e.i)).size,z:zs.map(z=>ZONES[z].toLowerCase()).join(' and ')}}).filter(Boolean).sort((x,y)=>y.days-x.days||x.a.name.localeCompare(y.a.name));
 const grpData=GROUPS.map(g=>{const M=ATH.filter(a=>a.grp===g),n=M.length;
   const av=['Available','Manage load','Limited'].map(t=>M.filter(a=>AV[a.id].t===t).length);
   const en=me(M.flatMap(a=>a.m.l7)),base=avg(M.map(a=>a.m.base)),cmp=M.reduce((s,a)=>s+a.m.days7,0)/(n*7);
   const zc={};M.forEach(a=>win(a,0,29).filter(e=>isSym(e)&&ZONES[e.zones[0]]&&e.zones[0]!=='abdomen'&&e.zones[0]!=='whole').forEach(e=>{const z=ZONES[e.zones[0]];zc[z]=(zc[z]||0)+1}));
   const top=Object.entries(zc).sort((x,y)=>y[1]-x[1]).slice(0,3);
-  return{g,n,av,en,base,cmp,top,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
+  return{g,n,av,en,base,cmp,top,an:M.filter(a=>ankleRep.some(x=>x.a.id===a.id)).length,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
 const grpCard=`<section class="card pad" id="grp"><div class="ch"><h2>Positions</h2><div class="note">setters, hitters, middles and liberos · energy and check-ins over 7 days, areas over 30 days</div></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Available · manage load · limited',`${d.av[0]} · ${d.av[1]} · ${d.av[2]}`],['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Available · manage load · limited',`${d.av[0]} · ${d.av[1]} · ${d.av[2]}`],['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Ankle reports, 4/10 or more',`${d.an} of ${d.n}`],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
 /* hints for the week */
 const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
 const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed','athletes named in Weekly load and recovery');
@@ -790,6 +788,7 @@ const weekHints=[
   `<b>The next 3 weeks</b> include 3 matches in 8 days: ${upc[0][2].length?`${upc[0][2].length} athlete${upc[0][2].length===1?'':'s'} may not be back in 73 h (${upc[0][2].map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan playing time and extra recovery time for ${upc[0][2].length===1?'this athlete':'these athletes'}.`:'all athletes are expected to be back in time.'}`];
 const gTop=[...grpData].sort((a,b)=>b.fl/b.n-a.fl/a.n)[0];
 if(gTop&&gTop.fl)weekHints.push(`<b>${gTop.g}:</b> ${gTop.fl} of ${gTop.n} athletes are flagged in Needs attention, the highest share of any position group${gTop.top.length?`; the most reported area is the ${gTop.top[0][0].toLowerCase()}`:''}. <b>Recommendation:</b> review training load for the flagged ${gTop.g.toLowerCase()}.`);
+if(ankleRep.length>=2)weekHints.push(`<b>Ankles:</b> ${ankleRep.length} of ${N} athletes reported ankle sensations of 4/10 or more in the last 7 days. <b>Recommendation:</b> include ankle stability and landing work in the warm-up.`);
 /* summary for the coach: built automatically, people first, only what crosses a threshold */
 const lk=a=>`<button type="button" class="lk" data-open="${a.id}">${a.name}</button>`;
 const nameList=(xs,f,max=4)=>xs.slice(0,max).map(f).join(', ')+(xs.length>max?` and ${xs.length-max} more in Needs attention`:'');
@@ -800,10 +799,11 @@ const whyUrg=a=>{const al=a.m.alerts;
 const sU=flagged.filter(x=>x.p.k==='urg'),sP=flagged.filter(x=>x.p.t==='Silent after pain'),sS=flagged.filter(x=>x.p.t==='Silent'),sW=flagged.filter(x=>x.p.k==='wat');
 const sLow=(enAll!=null&&enPrev!=null&&enAll-enPrev<=-.3)||c7-c7p<=-.1;
 const sumItems=[
-  sU.length&&`<b>Suggest a medical opinion:</b> ${nameList(sU,x=>`${lk(x.a)} (${whyUrg(x.a)})`)}.`,
-  sP.length&&`<b>Get in touch, no check-in after pain:</b> ${nameList(sP,x=>`${lk(x.a)} (${x.a.m.lastI} days, last ${x.a.m.last.int}/10)`)}. If the pain is still there, suggest a medical opinion.`,
+  sU.length&&`<b>Notify the medical staff:</b> ${nameList(sU,x=>`${lk(x.a)} (${whyUrg(x.a)})`)}.`,
+  sP.length&&`<b>Get in touch, no check-in after pain:</b> ${nameList(sP,x=>`${lk(x.a)} (${x.a.m.lastI} days, last ${x.a.m.last.int}/10)`)}. If the pain is still there, notify the medical staff.`,
   sS.length&&`<b>Not checking in:</b> ${nameList(sS,x=>`${lk(x.a)} (${x.a.m.lastI} days)`)}.`,
   sW.length&&`<b>Keep an eye on:</b> ${nameList(sW,x=>`${lk(x.a)} (${x.p.s.startsWith('averaging')?'sensations ':''}${x.p.s})`)}.`,
+  ankleRep.length&&`<b>Ankles:</b> ${ankleRep.length} of ${N} athletes reported ankle sensations of 4/10 or more in the last 7 days: ${nameList(ankleRep,x=>`${lk(x.a)} (${x.z}, ${x.days} day${x.days>1?'s':''})`,5)}.`,
   `<b>Overall:</b> ${sLow?'lower than usual':'in line with usual'}. Average energy ${f1(enAll)} this week against ${f1(enPrev)} over the previous four weeks; check-ins ${pct(c7)} this week against ${pct(c7p)} the week before.`].filter(Boolean);
 const sumHead=flagged.length?`<b>${flagged.length} of ${N} athletes</b> have something to follow up today. The other ${N-flagged.length} have no flag.`:`<b>Nothing to follow up today.</b> No athlete is flagged.`;
 const sumCard=`<section class="card pad" id="sum"><div class="ch"><h2>Summary</h2><div class="note">built automatically from today's check-ins</div></div>
@@ -825,7 +825,7 @@ function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
   <div><p class="lab">Energy by cycle day <span class="tag">against her usual</span></p>${cyc.some(x=>x[1]!=='–')?kv(cyc)+(m.cy.proj?`<p class="sub2" style="margin-top:8px">${fmtD(NEXT[0].i)}: about day ${m.cy.proj.cd+1} of her cycle${projLow(a,-NEXT[0].i)?', usually a low-energy phase':''}.</p>`:''):'<p class="sub2">Not enough check-ins by cycle day yet.</p>'}</div>
   <div><p class="lab">After sessions, last 90 days</p>${resp.length?kv(resp):'<p class="sub2">Not enough check-ins after sessions yet.</p>'}</div>
   <div><p class="lab">Words, last 30 days</p><div class="words">${words}</div></div>
-  <p class="sub2">Period dates and painkillers are not shown to the coach.</p></div>`}
+  <p class="sub2">Period dates and painkillers are shown to the medical staff only.</p></div>`}
 
 /* top band: day, today's session, check-ins today, session effort */
 const FDOW=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],FMON=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -839,20 +839,20 @@ const topBand=[
   ['Checked in',String(chkToday),`of ${N}`],
   ['Session effort',`Planned ${PLAN_RPE} · Team RPE ${TEAM_RPE}`,`<span class="gauge" role="img" aria-label="Team RPE ${TEAM_RPE} against planned ${PLAN_RPE}"><span class="gfill" style="width:${TEAM_RPE*10}%"></span><span class="gtick" style="left:calc(${PLAN_RPE*10}% - 1px)"></span></span>`]];
 $('#app').innerHTML=shell({label:'Head coach',nav:[['sum','Summary'],['grp','Positions'],['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day']],
-  title:'Volleyball',sub:'Youth section · Season 2026/27',role:'HC',roleLabel:'Head coach',
+  title:'Volleyball',sub:'U14 Women · Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
 ${sumCard}
 
-<section class="card pad"><div class="ch"><h2>Technical Staff Recommendations</h2><div class="note">based on check-ins and recovery time</div></div>
+<section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins and recovery time</div></div>
 <ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
 
 ${grpCard}
 
 <section class="card" id="att"><div class="ch"><h2>Needs attention</h2><div class="note">${attNote} · select a row for the detail</div></div>
 <div class="legend"><span><i style="background:var(--s0)"></i>no pain</span><span><i style="background:var(--s1)"></i>1–3</span><span><i style="background:var(--s2)"></i>4–6</span><span><i style="background:var(--s3)"></i>7–10</span><span><i style="border:1.5px dashed var(--s-none)"></i>no check-in</span></div>
-<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th></tr></thead><tbody>${attRows}</tbody></table></div>
-<p class="sub2" style="margin:10px 0 0"><b>When a medical opinion is suggested:</b> the same area flagged on 3 or more of the last 7 days, a red-flag sensation of 7/10 or more in the last 48 hours, or no check-in for 4 days or more after a sensation of 6/10 or more. The suggestion is for the athlete (with her parents, if she is under 18) to ask a doctor or sports physician. BAB reports what athletes say in their check-ins: it does not assess injuries and is not medical advice.</p></section>
+<div class="tw"><table><thead><tr><th>Athlete</th><th>Status</th><th>What she reports</th><th>Last 7 days</th><th aria-label="Mark as seen"></th><th>Notify</th></tr></thead><tbody>${attRows}</tbody></table></div>
+<p class="sub2" style="margin:10px 0 0"><b>When an athlete is flagged:</b> the same area reported on 3 or more of the last 7 days, a red-flag sensation of 7/10 or more in the last 48 hours, or no check-in for 4 days or more after a sensation of 6/10 or more. Use Notify to pass the case to the club's medical staff. BAB reports what athletes say in their check-ins: it does not assess injuries and is not medical advice.</p></section>
 
 <section class="card" id="sq"><div class="ch"><h2>Availability</h2><div class="note">energy 1–7 against each athlete's own usual · recovery = time back to usual energy</div><div class="right"><div class="seg" id="seg">${['All','Setters','Hitters','Middles','Liberos'].map(p=>`<button type="button" data-p="${p}" aria-pressed="${p==='All'}">${p}</button>`).join('')}</div></div></div>
 <div class="tw"><table><thead><tr><th>Athlete</th><th>Availability</th><th>Energy 7d</th><th>Recovery after match</th><th>Season</th><th style="white-space:normal;min-width:220px;max-width:340px">Technical Staff Guidance</th></tr></thead><tbody id="sqb">${sqRows()}</tbody></table></div></section>
@@ -869,7 +869,7 @@ ${grpCard}
 <section class="card pad" id="cy"><div class="ch"><h2>Energy by cycle day</h2><div class="note">squad average against each athlete's usual (1–7 scale)</div></div><svg id="cyc"></svg>
 <div class="legend"><span><i style="background:#5346C4"></i>average change in energy · ${cyAth.length} athletes with enough data</span></div>
 ${kv([['Athletes with a clear low phase',`${cyDip} of ${N}`],...cyDipBin.filter(x=>x[1]).map(x=>['Lowest at cycle day '+x[0].replace('Day ',''),x[1]+' athletes']),...NEXT.map((n,k)=>['Likely low phase on '+fmtD(n.i),cyLowM[k].length?cyLowM[k].map(a=>a.name).join(', '):'none'])])}
-<div class="callout" style="margin-top:12px"><b>Energy only</b>The coach sees energy by cycle day. Period dates and painkillers are not shown to the coach.</div></section>
+<div class="callout" style="margin-top:12px"><b>Energy only</b>The coach sees energy by cycle day. Period dates and painkillers stay with the medical staff.</div></section>
 <section class="card pad" id="ft"><div class="ch"><h2>Season fatigue</h2><div class="note">energy on rested days against each athlete's own season level</div></div><svg id="sf"></svg>
 <div class="legend"><span><i style="background:#CE6A18"></i>change in rested energy, weekly</span></div>
 <p class="sub2" style="margin-top:8px">Rested days: no match, Strength or Jumps session in the previous 36 h.</p>
