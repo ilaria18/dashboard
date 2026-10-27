@@ -461,6 +461,27 @@ tbody tr[data-id]{cursor:pointer}tbody tr[data-id]:focus-visible{outline:2px sol
 .card,.band{animation:none}
 .hm{min-width:0;width:100%}.hm th.l{font-size:10px}
 .pill.okg{background:rgba(14,143,125,.09);border-color:rgba(14,143,125,.32);color:#0B6C5F}
+.lg{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;font-size:12px;color:var(--ink-2)}.lg span{display:inline-flex;align-items:center;gap:6px}.lg i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.pos{margin-top:4px}.pos-h,.pos-r{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(150px,1.3fr) minmax(110px,.9fr) minmax(110px,.9fr) minmax(90px,.7fr) minmax(200px,2fr);gap:0 20px;align-items:center}
+.pos-h{padding:8px 0 6px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.pos-r{position:relative;padding:14px 0;border-top:1px solid var(--line-soft);font-size:13px}.pos-r>div{min-width:0}
+.pos-r.hot::before{content:'';position:absolute;left:-12px;top:14px;bottom:14px;width:3px;border-radius:2px;background:var(--coral)}
+.pn b{display:block;font-size:15px;font-weight:600}.pn span{display:block;margin-top:2px;font-size:12px;color:var(--ink-2)}
+.pbar{display:flex;gap:2px;height:20px;border-radius:6px;overflow:hidden;max-width:230px}.pbar i{display:flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:700;min-width:22px}
+.pos-r [data-l] b{font-weight:600;font-variant-numeric:tabular-nums}.pos-r b.z{font-weight:500;color:var(--ink-3)}
+.pdots{display:flex;gap:4px;margin-top:6px}.pdots i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(44,44,58,.22)}.pdots i.on{background:var(--coral);box-shadow:none}
+.mini{display:block;height:4px;max-width:70px;margin-top:7px;border-radius:2px;background:rgba(44,44,58,.1);overflow:hidden}.mini i{display:block;height:100%;background:var(--bar)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:rgba(44,44,58,.055);white-space:nowrap}.chip em{font-style:normal;color:var(--ink-3);margin-left:6px;font-variant-numeric:tabular-nums}
+.pos-r [data-l]::before{display:none}
+@media (max-width:900px){.pos-h{display:none}.pos-r{grid-template-columns:1fr 1fr;gap:12px 16px;padding:16px 0;align-items:start}.pos-r .pn,.pos-r .pa{grid-column:1/-1}.pos-r [data-l]::before{content:attr(data-l);display:block;margin-bottom:5px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}.pbar{max-width:none}.lg{margin-left:0;width:100%}}
+.rec>.lab{margin:6px 0 0}.rec>.lab.rec-g{margin-top:20px}
+.rec-r{display:grid;grid-template-columns:150px minmax(0,1.15fr) minmax(250px,1fr);gap:6px 32px;align-items:start;padding:14px 0;border-top:1px solid var(--line-soft)}.rec>.lab+.rec-r{margin-top:8px}
+.rw{display:flex;align-items:center;gap:9px}.rw b{font-size:14px;font-weight:600}.rw span{font-size:12.5px;color:var(--ink-2)}
+.rd{width:9px;height:9px;border-radius:50%;background:var(--bar);flex:none}.rd.am{background:var(--s1)}
+.ra>b{display:block;font-size:15px;font-weight:600;line-height:1.35}.ra .chips{margin-top:9px}
+.re{font-size:12.5px;line-height:1.45;color:var(--ink-2)}.re .rbar{display:block;height:6px;max-width:230px;margin-bottom:7px;border-radius:3px;background:rgba(44,44,58,.1);overflow:hidden}.rbar i{display:block;height:100%;background:var(--s1)}
+@media (max-width:900px){.rec-r{grid-template-columns:1fr;gap:8px;padding:16px 0}}
+@media (min-width:901px){.pos.na .pos-h,.pos.na .pos-r{grid-template-columns:minmax(150px,1.2fr) minmax(110px,.9fr) minmax(110px,.9fr) minmax(90px,.7fr) minmax(200px,2fr)}}
 
 .hl{margin:0;padding:0;list-style:none}.hl li{padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13.5px;line-height:1.5;color:var(--ink)}.hl li:last-child{border-bottom:0}.hl b{font-family:var(--disp)}
 </style>
@@ -758,19 +779,38 @@ const grpData=GROUPS.map(g=>{const M=ATH.filter(a=>a.grp===g),n=M.length;
   const zc={};M.forEach(a=>win(a,0,29).filter(e=>isSym(e)&&ZONES[e.zones[0]]&&e.zones[0]!=='abdomen'&&e.zones[0]!=='whole').forEach(e=>{const z=ZONES[e.zones[0]];zc[z]=(zc[z]||0)+1}));
   const top=Object.entries(zc).sort((x,y)=>y[1]-x[1]).slice(0,3);
   return{g,n,en,base,cmp,top,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
+/* event groups: one table, dots instead of numbers where it reads faster */
+const attDots=d=>`<span class="pdots" aria-hidden="true">${Array.from({length:d.n},(_,k)=>`<i class="${k<d.fl?'on':''}"></i>`).join('')}</span>`;
+const hotShare=Math.max(...grpData.map(d=>d.fl/d.n));
 const grpCard=`<section class="card pad" id="grp"><div class="ch"><h2>Event groups</h2><div class="note">runs, jumps and throws · energy and check-ins over 7 days, areas over 30 days</div></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
+<div class="pos na"><div class="pos-h"><span>Event group</span><span>Needs attention</span><span>Energy, 7 days</span><span>Check-ins</span><span>Most reported areas</span></div>${grpData.map(d=>`<div class="pos-r${d.fl&&d.fl/d.n===hotShare?' hot':''}"><div class="pn"><b>${d.g}</b><span>${d.n} athletes · ${d.ev.join(', ')}</span></div><div data-l="Needs attention"><b class="${d.fl?'':'z'}">${d.fl} of ${d.n}</b>${attDots(d)}</div><div data-l="Energy, 7 days"><b>${f1(d.en)}</b>${dlt(d.en,d.base)}</div><div data-l="Check-ins"><b>${pct(d.cmp)}</b><span class="mini"><i style="width:${Math.round(d.cmp*100)}%"></i></span></div><div class="pa" data-l="Most reported areas">${d.top.length?`<span class="chips">${d.top.map(x=>`<span class="chip">${x[0].toLowerCase()}<em>${x[1]}</em></span>`).join('')}</span>`:'–'}</div></div>`).join('')}</div></section>`;
 /* hints for the week */
 const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
-const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed','athletes named in Weekly load and recovery');
 const lowSun=ATH.filter(a=>lowOn(a,-NEXT[0].i));
-const weekHints=[
-  `<b>Tuesday Strength</b> comes ${Math.round(gapRows[0].g.gap)} h after the competition, and ${gapRows[0].rd} of ${gapRows[0].rd+gapRows[0].nr} athletes are usually back to their usual energy by then. <b>Recommendation:</b> ${recTxt2(gapRows[0].hint)}`,
-  `<b>Wednesday Speed</b> comes ${gapRows[1].g.gap} h after Strength, and ${gapRows[1].nr} of ${gapRows[1].rd+gapRows[1].nr} athletes are usually not back yet. <b>Recommendation:</b> ${gapRows[1].sh<.6?'lighten Strength, or run Speed with reduced volume for the athletes named in Weekly load and recovery, to protect Sunday.':'give the athletes named in Weekly load and recovery a reduced Speed volume.'}`,
-  `<b>Sunday competition:</b> ${lowSun.length?`${lowSun.length} athlete${lowSun.length>1?'s are':' is'} expected to have lower energy (${lowSun.map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan warm-up and the number of events or attempts.`:'no athlete is expected to have lower energy. <b>Recommendation:</b> no change to the plan.'}`,
-  `<b>The next 3 weeks</b> include 3 competitions in 8 days: ${upc[0][2].length?`${upc[0][2].length} athlete${upc[0][2].length===1?'':'s'} may not be back in 73 h (${upc[0][2].map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan extra recovery time between competitions for ${upc[0][2].length===1?'this athlete':'these athletes'}.`:'all athletes are expected to be back in time.'}`];
+/* overall recommendations: what to do, for whom, and how many are concerned */
+const sur=a=>a.name.split(' ')[1],plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+const recRow=r=>`<div class="rec-r"><div class="rw"><i class="rd${r.n?' am':''}"></i><b>${r.d}</b>${r.w?`<span>${r.w}</span>`:''}</div><div class="ra"><b>${r.act}</b>${r.names.length?`<span class="chips">${r.names.slice(0,8).map(x=>`<span class="chip">${x}</span>`).join('')}${r.names.length>8?`<span class="chip">+${r.names.length-8}</span>`:''}</span>`:''}</div><div class="re"><span class="rbar" role="img" aria-label="${r.n} of ${r.of}"><i style="width:${r.of?Math.round(r.n/r.of*100):0}%"></i></span>${r.ev}</div></div>`;
+const recSess=[
+  {d:'Tue',w:'Strength',n:gapRows[0].nr,of:gapRows[0].rd+gapRows[0].nr,names:gapRows[0].names,
+   act:gapRows[0].sh>=.85?'Keep the session as planned':gapRows[0].sh>=.6?`Keep the session, lighter for ${plural(gapRows[0].nr,'athlete')}`:'Lighten the session, or move it later',
+   ev:`${gapRows[0].rd} of ${gapRows[0].rd+gapRows[0].nr} are usually back to their usual energy ${Math.round(gapRows[0].g.gap)} h after the competition`},
+  {d:'Wed',w:'Speed',n:gapRows[1].nr,of:gapRows[1].rd+gapRows[1].nr,names:gapRows[1].names,
+   act:gapRows[1].sh<.6?'Lighten Strength, or reduce Speed volume, to protect Sunday':gapRows[1].nr?`Reduce Speed volume for ${plural(gapRows[1].nr,'athlete')}`:'Keep the session as planned',
+   ev:`${gapRows[1].rd} of ${gapRows[1].rd+gapRows[1].nr} are usually back to their usual energy ${gapRows[1].g.gap} h after Strength`},
+  {d:'Sun',w:'Competition',n:lowSun.length,of:N,names:lowSun.map(sur),
+   act:lowSun.length?'Plan warm-up and the number of events or attempts':'No change to the plan',
+   ev:lowSun.length?`${lowSun.length} of ${N} expected to have lower energy`:'No athlete is expected to have lower energy'}];
 const gTop=[...grpData].sort((a,b)=>b.fl/b.n-a.fl/a.n)[0];
-if(gTop&&gTop.fl)weekHints.push(`<b>${gTop.g}:</b> ${gTop.fl} of ${gTop.n} athletes are flagged in Needs attention, the highest share of any event group${gTop.top.length?`; the most reported area is the ${gTop.top[0][0].toLowerCase()}`:''}. <b>Recommendation:</b> review ${gTop.g.toLowerCase()} volume and technical load for the flagged athletes.`);
+const recTeam=[];
+if(gTop&&gTop.fl)recTeam.push({d:gTop.g,w:'',n:gTop.fl,of:gTop.n,names:flagged.filter(x=>x.a.grp===gTop.g).map(x=>sur(x.a)),
+  act:`Review ${gTop.g.toLowerCase()} volume and technical load for the flagged athletes`,
+  ev:`${gTop.fl} of ${gTop.n} are in Needs attention, the highest share of any event group${gTop.top.length?`; most reported area: ${gTop.top[0][0].toLowerCase()}`:''}`});
+const recAhead=[{d:'Next 3 weeks',w:'',n:upc[0][2].length,of:N,names:upc[0][2].map(sur),
+  act:upc[0][2].length?`Plan extra recovery time between competitions for ${upc[0][2].length===1?'this athlete':'these athletes'}`:'No change to the plan',
+  ev:upc[0][2].length?`3 competitions in 8 days: ${upc[0][2].length} of ${N} may not be back in 73 h`:'3 competitions in 8 days: all athletes are expected to be back in time'}];
+const recGroups=[["This week's sessions",recSess],['Across event groups',recTeam],['Looking ahead',recAhead]];
+const recCard=`<section class="card pad"><div class="ch"><h2>Technical Staff Recommendations</h2><div class="note">based on check-ins and recovery time</div></div>
+<div class="rec">${recGroups.filter(g=>g[1].length).map(([t,rs],k)=>`<p class="lab${k?' rec-g':''}">${t}</p>${rs.map(recRow).join('')}`).join('')}</div></section>`;
 /* summary for the coach: built automatically, people first, only what crosses a threshold */
 const lk=a=>`<button type="button" class="lk" data-open="${a.id}">${a.name}</button>`;
 const nameList=(xs,f,max=4)=>xs.slice(0,max).map(f).join(', ')+(xs.length>max?` and ${xs.length-max} more in Needs attention`:'');
@@ -827,8 +867,7 @@ $('#app').innerHTML=shell({label:'Head coach',nav:[['sum','Summary'],['grp','Eve
   main:`
 ${sumCard}
 
-<section class="card pad"><div class="ch"><h2>Technical Staff Recommendations</h2><div class="note">based on check-ins and recovery time</div></div>
-<ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
+${recCard}
 
 ${grpCard}
 
