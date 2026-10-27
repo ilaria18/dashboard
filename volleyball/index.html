@@ -485,8 +485,8 @@ const LIMB=Object.keys(ZG);
 /* typical areas by position group, so the sample data looks like volleyball */
 const ZBY={Setters:['ankleL','ankleR','wristR','wristL','shoulderR','kneeL','kneeR','lumbar'],Liberos:['ankleL','ankleR','ankleL','ankleR','kneeL','kneeR','hip','hip','lumbar','hamL','hamR'],Hitters:['ankleL','ankleR','ankleL','ankleR','shoulderR','shoulderR','shoulderL','kneeL','kneeR','kneeL','kneeR','lumbar','hip'],Middles:['ankleL','ankleR','ankleL','ankleR','kneeL','kneeR','kneeL','kneeR','shoulderR','shoulderL','lumbar','heelL','heelR']};
 const TRIG=['movement','pressure','rest'];
-const SEFF={Match:3,Strength:1.5,Jumps:1.5,Technique:.8,Recovery:.2,Activation:.3};
-const ROUT=[{type:'Recovery',s:10,e:11.25},{type:'Strength',s:16,e:17.5},{type:'Jumps',s:16,e:17.5},{type:'Technique',s:16,e:17.75},{type:'Activation',s:11,e:12},null,null];
+const SEFF={Match:3,Strength:1.5,Jumps:1.5,Technique:.8,Tactics:.8,Recovery:.2,Activation:.3};
+const ROUT=[{type:'Recovery',s:10,e:11.25},{type:'Strength',s:16,e:17.5},{type:'Jumps',s:16,e:17.5},{type:'Technique',s:16,e:17.75},{type:'Tactics',s:16,e:17.75},{type:'Activation',s:11,e:12},null];
 const MATCH=new Set();
 for(let i=1;i<DAYS;i++){if(dow(i)===6&&Math.floor(i/7)%6!==5)MATCH.add(i);if(dow(i)===2&&i>4&&i<260&&Math.floor(i/7)%7===3)MATCH.add(i)}
 const SESS=Array.from({length:DAYS+4},(_,i)=>MATCH.has(i)?(dow(i)===6?{type:'Match',s:15,e:16.75}:{type:'Match',s:18,e:19.75}):ROUT[dow(i)]);
@@ -680,6 +680,8 @@ const SIGC={area:'urg',red:'urg',pk:'wat',gr:'wat',cy:'wat',sil:'sil',en:'wat',i
 const GAPS=[
  {id:'ts',d:'Tue',s:'Strength',after:'Sunday match',type:'Match',gap:47.25,lim:48},
  {id:'ws',d:'Wed',s:'Jumps',after:'Tuesday Strength',type:'Strength',gap:22.5,lim:24},
+ {id:'th',d:'Thu',s:'Technique',after:'Wednesday Jumps',type:'Jumps',gap:22.5,lim:24,light:true},
+ {id:'fr',d:'Fri',s:'Tactics',after:'Wednesday Jumps',type:'Jumps',gap:46.5,lim:48,light:true},
  {id:'sm',d:'Sun',s:'Match',after:'Wednesday Jumps',type:'Jumps',gap:93.5,lim:60}];
 const ready=(a,type,lim)=>{const r=a.m.rec[type];return r==null?null:r<=lim};
 
@@ -740,11 +742,11 @@ const rcDist=t=>{const v=ATH.map(a=>a.m.rec[t]).filter(x=>x!=null),n=v.length||1
   return{med:median(v.map(x=>x===99?99:x)),parts:[['≤12 h',v.filter(x=>x<=12).length,'#0E8F7D'],['24 h',v.filter(x=>x===24).length,'#7AC2B6'],['36–48 h',v.filter(x=>x>=36&&x<=48).length,'#E9B64A'],['60 h',v.filter(x=>x===60).length,'#CE6A18'],[lim,v.filter(x=>x===99).length,'#A3202F']],n}};
 const rcMed=(t,m)=>m==null?'–':m===99?(t==='Strength'?'>24 h':'>60 h'):m<=12?'≤12 h':Math.round(m)+' h';
 /* weekly load vs gaps */
-const gapRows=GAPS.map(g=>{const rd=ATH.filter(a=>ready(a,g.type,g.lim)===true),nr=ATH.filter(a=>ready(a,g.type,g.lim)===false),sh=rd.length/(rd.length+nr.length);
+const gapRows=GAPS.map(g=>{if(g.light)return{g,rd:0,nr:0,sh:1,names:[],hint:'Low-load session: keep as planned.',light:true};const rd=ATH.filter(a=>ready(a,g.type,g.lim)===true),nr=ATH.filter(a=>ready(a,g.type,g.lim)===false),sh=rd.length/(rd.length+nr.length);
   const names=nr.map(a=>a.name.split(' ')[1]);
   const hint=sh>=.85?'Keep as planned.':sh>=.6?`Keep the session, with a lighter version for the ${nr.length} athletes listed.`:`Lighten the session for the squad, or move it later. ${nr.length} of ${rd.length+nr.length} are not back to usual.`;
   return{g,rd:rd.length,nr:nr.length,sh,names,hint}});
-const gapTbl=gapRows.map(r=>`<tr><td><b>${r.g.d} ${r.g.s}</b><div class="p">${Math.round(r.g.gap*2)/2} h after ${r.g.after}</div></td><td class="mono">${Math.round(r.sh*100)}%<div class="p">${r.rd} of ${r.rd+r.nr} back to usual</div></td><td class="nt" style="max-width:340px">${r.hint}${r.names.length?`<div class="p" style="margin-top:3px">${r.names.slice(0,7).join(', ')}${r.names.length>7?` +${r.names.length-7}`:''}</div>`:''}</td></tr>`).join('');
+const gapTbl=gapRows.map(r=>`<tr><td><b>${r.g.d} ${r.g.s}</b><div class="p">${Math.round(r.g.gap*2)/2} h after ${r.g.after}</div></td><td class="mono">${r.light?'Low load':`${Math.round(r.sh*100)}%<div class="p">${r.rd} of ${r.rd+r.nr} back to usual</div>`}</td><td class="nt" style="max-width:340px">${r.hint}${r.names.length?`<div class="p" style="margin-top:3px">${r.names.slice(0,7).join(', ')}${r.names.length>7?` +${r.names.length-7}`:''}</div>`:''}</td></tr>`).join('');
 const upc=[['Sun 18 Oct → Wed 21 Oct',73.25,72],['Wed 21 Oct → Sun 25 Oct',91.25,72]].map(([l,g,lim])=>{const nr=ATH.filter(a=>ready(a,'Match',lim)===false);return[l,g,nr]});
 /* season fatigue */
 const W=Array.from({length:39},(_,k)=>38-k);
