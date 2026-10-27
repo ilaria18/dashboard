@@ -837,8 +837,7 @@ ${grpCard}
 <p class="sub2" style="margin-top:12px">Estimated for each athlete from her check-ins in the hours after a match, Strength or Jumps session, against her energy when rested.</p></section>
 
 <section class="card pad"><div class="ch"><h2>Weekly load and recovery</h2><div class="note">standard week · athletes back to usual energy before the session</div></div>
-<div class="tw"><table><thead><tr><th>Session</th><th>Ready</th><th style="white-space:normal;min-width:220px;max-width:340px">Technical Staff Suggestion</th></tr></thead><tbody>${gapTbl}</tbody></table></div>
-<div class="callout" style="margin-top:12px"><b>Congested weeks</b>${upc.map(u=>`${u[0]} (${Math.round(u[1])} h): ${u[2].length} not usually back${u[2].length?' – '+u[2].map(a=>a.name.split(' ')[1]).join(', '):''}.`).join(' ')}</div></section>
+<div class="tw"><table><thead><tr><th>Session</th><th>Ready</th><th style="white-space:normal;min-width:220px;max-width:340px">Technical Staff Suggestion</th></tr></thead><tbody>${gapTbl}</tbody></table></div></section>
 
 <div class="grid">
 <section class="card pad" id="ft"><div class="ch"><h2>Season fatigue</h2><div class="note">energy on rested days against each athlete's own season level</div></div><svg id="sf"></svg>
