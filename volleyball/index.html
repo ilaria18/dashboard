@@ -217,8 +217,6 @@ td:last-child{padding-right:0}
 .pain .z{font-weight:500;font-size:13.5px}
 .pain .w{color:var(--ink-2);font-size:12.5px;margin-top:1px;font-variant-numeric:tabular-nums}
 .pain .w em{font-style:normal;color:var(--ink);font-weight:500}
-.lk{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--rail);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(0,75,78,.35);text-underline-offset:2px}.lk:hover{text-decoration-color:var(--rail)}.lk:focus-visible{outline:2px solid var(--lav);outline-offset:2px;border-radius:3px}
-.sumhead{font-size:14.5px;line-height:1.5;margin:0 0 6px;color:var(--ink)}.sumhead b{font-family:var(--disp)}
 
 .strip{display:flex;gap:4px;align-items:center}
 .d{width:11px;height:11px;border-radius:99px;flex:none;display:block}
@@ -639,7 +637,6 @@ function wireCommon(onRow){
   $('#scrim').addEventListener('click',closeOver);
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOver()});
   $('#over').addEventListener('click',e=>{if(e.target.closest('.x'))closeOver()});
-  document.addEventListener('click',e=>{const o=e.target.closest('[data-open]');if(o){onRow(+o.dataset.open);return}});
   document.addEventListener('click',e=>{if(e.target.closest('button.act'))return;const tr=e.target.closest('tr[data-id]');if(tr)onRow(+tr.dataset.id)});
   document.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){if(e.target.closest&&e.target.closest('button.act'))return;const tr=e.target.closest&&e.target.closest('tr[data-id]');if(tr){e.preventDefault();onRow(+tr.dataset.id)}}});
   /* demo actions: shown as done on the page only, nothing is stored or sent */
@@ -789,27 +786,6 @@ const weekHints=[
 const gTop=[...grpData].sort((a,b)=>b.fl/b.n-a.fl/a.n)[0];
 if(gTop&&gTop.fl)weekHints.push(`<b>${gTop.g}:</b> ${gTop.fl} of ${gTop.n} athletes are flagged in Needs attention, the highest share of any position group${gTop.top.length?`; the most reported area is the ${gTop.top[0][0].toLowerCase()}`:''}. <b>Recommendation:</b> review training load for the flagged ${gTop.g.toLowerCase()}.`);
 if(ankleRep.length>=2)weekHints.push(`<b>Ankles:</b> ${ankleRep.length} of ${N} athletes reported ankle sensations of 4/10 or more in the last 7 days. <b>Recommendation:</b> include ankle stability and landing work in the warm-up.`);
-/* summary for the coach: built automatically, people first, only what crosses a threshold */
-const lk=a=>`<button type="button" class="lk" data-open="${a.id}">${a.name}</button>`;
-const nameList=(xs,f,max=4)=>xs.slice(0,max).map(f).join(', ')+(xs.length>max?` and ${xs.length-max} more in Needs attention`:'');
-const whyUrg=a=>{const al=a.m.alerts;
-  if(al.length)return`${ZONES[al[0].zone].toLowerCase()}, ${al[0].days} of 7 days`;
-  const r=a.ent.filter(e=>e.i<=1&&isSym(e)&&tierOf(e)===2&&e.int>=7).sort((x,y)=>y.int-x.int)[0];
-  return r?`${(ZONES[r.zones[0]]||'whole body').toLowerCase()}, ${r.int}/10`:'red-flag sensation'};
-const sU=flagged.filter(x=>x.p.k==='urg'),sP=flagged.filter(x=>x.p.t==='Silent after pain'),sS=flagged.filter(x=>x.p.t==='Silent'),sW=flagged.filter(x=>x.p.k==='wat');
-const sLow=(enAll!=null&&enPrev!=null&&enAll-enPrev<=-.3)||c7-c7p<=-.1;
-const sumItems=[
-  sU.length&&`<b>Notify the medical staff:</b> ${nameList(sU,x=>`${lk(x.a)} (${whyUrg(x.a)})`)}.`,
-  sP.length&&`<b>Get in touch, no check-in after pain:</b> ${nameList(sP,x=>`${lk(x.a)} (${x.a.m.lastI} days, last ${x.a.m.last.int}/10)`)}. If the pain is still there, notify the medical staff.`,
-  sS.length&&`<b>Not checking in:</b> ${nameList(sS,x=>`${lk(x.a)} (${x.a.m.lastI} days)`)}.`,
-  sW.length&&`<b>Keep an eye on:</b> ${nameList(sW,x=>`${lk(x.a)} (${x.p.s.startsWith('averaging')?'sensations ':''}${x.p.s})`)}.`,
-  ankleRep.length&&`<b>Ankles:</b> ${ankleRep.length} of ${N} athletes reported ankle sensations of 4/10 or more in the last 7 days: ${nameList(ankleRep,x=>`${lk(x.a)} (${x.z}, ${x.days} day${x.days>1?'s':''})`,5)}.`,
-  `<b>Overall:</b> ${sLow?'lower than usual':'in line with usual'}. Average energy ${f1(enAll)} this week against ${f1(enPrev)} over the previous four weeks; check-ins ${pct(c7)} this week against ${pct(c7p)} the week before.`].filter(Boolean);
-const sumHead=flagged.length?`<b>${flagged.length} of ${N} athletes</b> have something to follow up today. The other ${N-flagged.length} have no flag.`:`<b>Nothing to follow up today.</b> No athlete is flagged.`;
-const sumCard=`<section class="card pad" id="sum"><div class="ch"><h2>Summary</h2><div class="note">built automatically from today's check-ins</div></div>
-<p class="sumhead">${sumHead}</p>
-<ul class="hl">${sumItems.map(x=>`<li>${x}</li>`).join('')}</ul>
-<p class="sub2" style="margin:8px 0 0">It lists only what crosses a threshold, so a name that is not here has no flag today; that is not a guarantee that all is well. Select a name to open the athlete's detail.</p></section>`;
 /* athlete detail */
 function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
   const bars=m.daily14.map((x,k)=>`<div class="day"><span class="bx" style="height:${x==null?3:Math.round(x/7*48)}px;background:${x==null?'var(--s-none)':'var(--bar)'}"></span><span class="dl">${k%7===0||k===13?dt(13-k).getUTCDate():'&nbsp;'}</span></div>`).join('');
@@ -838,12 +814,10 @@ const topBand=[
   ["Today's session",todayS?`${mdLab?mdLab+' · ':''}${todayS.type}`:'Rest day',todayS?`${Math.round((todayS.e-todayS.s)*60)} min`:''],
   ['Checked in',String(chkToday),`of ${N}`],
   ['Session effort',`Planned ${PLAN_RPE} · Team RPE ${TEAM_RPE}`,`<span class="gauge" role="img" aria-label="Team RPE ${TEAM_RPE} against planned ${PLAN_RPE}"><span class="gfill" style="width:${TEAM_RPE*10}%"></span><span class="gtick" style="left:calc(${PLAN_RPE*10}% - 1px)"></span></span>`]];
-$('#app').innerHTML=shell({label:'Head coach',nav:[['sum','Summary'],['grp','Positions'],['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day']],
+$('#app').innerHTML=shell({label:'Head coach',nav:[['grp','Positions'],['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cy','Energy by cycle day']],
   title:'Volleyball',sub:'U14 Women · Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
-${sumCard}
-
 <section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins and recovery time</div></div>
 <ul class="hl">${weekHints.map(x=>`<li>${x}</li>`).join('')}</ul></section>
 
