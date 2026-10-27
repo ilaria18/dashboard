@@ -797,7 +797,9 @@ function detail(a){const m=a.m,p=prio(a),h=hints(a);
   const resp=Object.entries(m.resp).filter(([,r])=>r.n>=3).sort((x,y)=>y[1].int-x[1].int).map(([t,r])=>[t==='Match'?'Competition':t,`${f1(r.int)} / 10 · energy ${f1(r.en)}`]);
   const words=Object.entries(m.words).sort((x,y)=>y[1]-x[1]).slice(0,6).map(([w,c])=>`<span class="word t${TIER[WORDS[w].s]}">${WORDS[w].n} · ${c}</span>`).join('');
   const e0=m.daily14[13],sg=x=>{const r=Math.round(x*10)/10;return(r>0?'+':r<0?'−':'')+Math.abs(r).toFixed(1)};
-  const todayTxt=e0!=null?`${f1(e0)} · ${sg(e0-m.base)} against her usual`:'No check-in today';
+  /* what is usual for her on a day like today: her usual energy, adjusted for where she is in her own pattern (not shown as such) */
+  const cyT=m.cy,cdT=cyT.flag==='ok'&&cyT.medIv?cyT.sinceLast%Math.round(cyT.medIv):null,biT=cdT==null?-1:BINS.findIndex(([lo,hi])=>cdT>=lo&&cdT<=hi),expT=m.base+(biT>=0&&cyT.curve[biT]!=null?cyT.curve[biT]:0);
+  const todayTxt=e0!=null?`${f1(e0)} · ${sg(e0-expT)} against her usual for today`:'No check-in today';
   return overHead(a)+`<div class="over-b"><div class="callout"><b>${p?p.t:'No flag'}</b>${p?p.w:'Nothing to report this week.'}</div>
   ${h.length?`<div><p class="lab">Technical Staff Guidance</p><ul class="hl">${h.map(x=>`<li>${x}</li>`).join('')}</ul></div>`:''}
   <div><p class="lab">Energy, last 14 days (1–7)</p><div class="days">${bars}</div></div>
