@@ -458,6 +458,19 @@ tbody tr[data-id]{cursor:pointer}tbody tr[data-id]:focus-visible{outline:2px sol
 .card,.band{animation:none}
 .hm{min-width:0;width:100%}.hm th.l{font-size:10px}
 .pill.okg{background:rgba(14,143,125,.09);border-color:rgba(14,143,125,.32);color:#0B6C5F}
+.lg{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;font-size:12px;color:var(--ink-2)}.lg span{display:inline-flex;align-items:center;gap:6px}.lg i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.pos{margin-top:4px}.pos-h,.pos-r{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(150px,1.3fr) minmax(110px,.9fr) minmax(110px,.9fr) minmax(90px,.7fr) minmax(200px,2fr);gap:0 20px;align-items:center}
+.pos-h{padding:8px 0 6px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.pos-r{position:relative;padding:14px 0;border-top:1px solid var(--line-soft);font-size:13px}.pos-r>div{min-width:0}
+.pos-r.hot::before{content:'';position:absolute;left:-12px;top:14px;bottom:14px;width:3px;border-radius:2px;background:var(--coral)}
+.pn b{display:block;font-size:15px;font-weight:600}.pn span{display:block;margin-top:2px;font-size:12px;color:var(--ink-2)}
+.pbar{display:flex;gap:2px;height:20px;border-radius:6px;overflow:hidden;max-width:230px}.pbar i{display:flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:700;min-width:22px}
+.pos-r [data-l] b{font-weight:600;font-variant-numeric:tabular-nums}.pos-r b.z{font-weight:500;color:var(--ink-3)}
+.pdots{display:flex;gap:4px;margin-top:6px}.pdots i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(44,44,58,.22)}.pdots i.on{background:var(--coral);box-shadow:none}
+.mini{display:block;height:4px;max-width:70px;margin-top:7px;border-radius:2px;background:rgba(44,44,58,.1);overflow:hidden}.mini i{display:block;height:100%;background:var(--bar)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:rgba(44,44,58,.055);white-space:nowrap}.chip em{font-style:normal;color:var(--ink-3);margin-left:6px;font-variant-numeric:tabular-nums}
+.pos-r [data-l]::before{display:none}
+@media (max-width:900px){.pos-h{display:none}.pos-r{grid-template-columns:1fr 1fr;gap:12px 16px;padding:16px 0;align-items:start}.pos-r .pn,.pos-r .pa{grid-column:1/-1}.pos-r [data-l]::before{content:attr(data-l);display:block;margin-bottom:5px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}.pbar{max-width:none}.lg{margin-left:0;width:100%}}
 
 .hl{margin:0;padding:0;list-style:none}.hl li{padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13.5px;line-height:1.5;color:var(--ink)}.hl li:last-child{border-bottom:0}.hl b{font-family:var(--disp)}
 </style>
@@ -770,8 +783,13 @@ const grpData=GROUPS.map(g=>{const M=ATH.filter(a=>a.grp===g),n=M.length;
   const zc={};M.forEach(a=>win(a,0,29).filter(e=>isSym(e)&&ZONES[e.zones[0]]&&e.zones[0]!=='abdomen'&&e.zones[0]!=='whole').forEach(e=>{const z=ZONES[e.zones[0]];zc[z]=(zc[z]||0)+1}));
   const top=Object.entries(zc).sort((x,y)=>y[1]-x[1]).slice(0,3);
   return{g,n,av,en,base,cmp,top,fl:flagged.filter(x=>x.a.grp===g).length,ev:[...new Set(M.map(a=>a.pos))]}});
-const grpCard=`<section class="card pad" id="grp"><div class="ch"><h2>Positions</h2><div class="note">setters, hitters, middles and liberos · energy and check-ins over 7 days, areas over 30 days</div></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px">${grpData.map(d=>`<div><p class="lab">${d.g} <span class="tag">${d.n} athletes</span></p><p class="sub2" style="margin:-2px 0 8px">${d.ev.join(', ')}</p>${kv([['Available · manage load · limited',`${d.av[0]} · ${d.av[1]} · ${d.av[2]}`],['Needs attention',`${d.fl} of ${d.n}`],['Energy, 7 days',`${f1(d.en)} ${dlt(d.en,d.base)}`],['Check-ins, 7 days',pct(d.cmp)],['Most reported areas',d.top.length?d.top.map(x=>`${x[0].toLowerCase()} · ${x[1]}`).join('<br>'):'–']])}</div>`).join('')}</div></section>`;
+/* positions: one table instead of four repeated lists; bars and dots instead of numbers where it reads faster */
+const AVC=['var(--bar)','var(--s1)','var(--s3)'],AVT=['#fff','var(--ink)','#fff'],AVN=['available','manage load','limited'];
+const avBar=d=>`<span class="pbar" role="img" aria-label="${d.av.map((v,k)=>v+' '+AVN[k]).join(', ')}">${d.av.map((v,k)=>v?`<i style="flex:${v};background:${AVC[k]};color:${AVT[k]}">${v}</i>`:'').join('')}</span>`;
+const attDots=d=>`<span class="pdots" aria-hidden="true">${Array.from({length:d.n},(_,k)=>`<i class="${k<d.fl?'on':''}"></i>`).join('')}</span>`;
+const hotShare=Math.max(...grpData.map(d=>d.fl/d.n));
+const grpCard=`<section class="card pad" id="grp"><div class="ch"><h2>Positions</h2><div class="note">energy and check-ins over 7 days, areas over 30 days</div><div class="lg">${AVN.map((t,k)=>`<span><i style="background:${AVC[k]}"></i>${t}</span>`).join('')}</div></div>
+<div class="pos"><div class="pos-h"><span>Position</span><span>Availability</span><span>Needs attention</span><span>Energy, 7 days</span><span>Check-ins</span><span>Most reported areas</span></div>${grpData.map(d=>`<div class="pos-r${d.fl&&d.fl/d.n===hotShare?' hot':''}"><div class="pn"><b>${d.g}</b><span>${d.n} athletes · ${d.ev.join(', ')}</span></div><div data-l="Availability">${avBar(d)}</div><div data-l="Needs attention"><b class="${d.fl?'':'z'}">${d.fl} of ${d.n}</b>${attDots(d)}</div><div data-l="Energy, 7 days"><b>${f1(d.en)}</b>${dlt(d.en,d.base)}</div><div data-l="Check-ins"><b>${pct(d.cmp)}</b><span class="mini"><i style="width:${Math.round(d.cmp*100)}%"></i></span></div><div class="pa" data-l="Most reported areas">${d.top.length?`<span class="chips">${d.top.map(x=>`<span class="chip">${x[0].toLowerCase()}<em>${x[1]}</em></span>`).join('')}</span>`:'–'}</div></div>`).join('')}</div></section>`;
 /* hints for the week */
 const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
 const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed','athletes named in Weekly load and recovery');
