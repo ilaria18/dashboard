@@ -698,15 +698,18 @@ function prio(a){const m=a.m,lastSym=m.last&&isSym(m.last)?m.last:null;
   if(m.int7!=null&&m.int7>=5)return{k:'wat',t:'Watch',w:`Sensations averaging ${f1(m.int7)}/10 this week.`,s:`averaging ${f1(m.int7)}/10 this week`,o:2};
   return null}
 const flagged=ATH.map(a=>({a,p:prio(a)})).filter(x=>x.p).sort((x,y)=>x.p.o-y.p.o||x.a.name.localeCompare(y.a.name));
+/* expected lower energy on a given day, from her own pattern; used in the indicators, not shown as such */
+const lowOn=(a,d)=>{const y=a.m.cy;if(y.flag!=='ok'||!y.medIv)return false;const cd=(y.sinceLast+d)%Math.round(y.medIv),bi=BINS.findIndex(([lo,hi])=>cd>=lo&&cd<=hi);return bi>=0&&y.curve[bi]!=null&&y.curve[bi]<=-.7};
 function hints(a){const h=[],m=a.m;
   if(m.rec.Match!=null&&m.rec.Match>=60)h.push('Slow to recover after matches: a lighter Tuesday session.');
   if(m.rec.Strength===99)h.push('Not back to usual 24 h after Strength: reduced volume in Wednesday\'s Jumps session.');
   if(a.fat.drop!=null&&a.fat.drop>=.8)h.push('Rested energy has slid over the last 4 weeks: an extra recovery day or lower volume.');
+  if(lowOn(a,-NEXT[0].i))h.push('Energy likely to be lower on '+fmtD(NEXT[0].i)+': plan warm-up and playing time.');
   if(m.growth)h.push('Pattern often seen in growth spurts: watch jump volume. Medical staff informed.');
   return h}
 function avail(a){const p=prio(a);
   if(p&&p.k==='urg')return{k:'urg',t:'Limited'};
-  if(p||a.sigs.some(x=>['pk','gr'].includes(x.k))||(a.fat.drop!=null&&a.fat.drop>=.8))return{k:'wat',t:'Manage load'};
+  if(p||a.sigs.some(x=>['pk','gr'].includes(x.k))||(a.fat.drop!=null&&a.fat.drop>=.8)||lowOn(a,-NEXT[0].i))return{k:'wat',t:'Manage load'};
   return{k:'okg',t:'Available'}}
 const AV=ATH.map(a=>avail(a)),nAv=AV.filter(x=>x.t==='Available').length,nMg=AV.filter(x=>x.t==='Manage load').length,nLm=AV.filter(x=>x.t==='Limited').length;
 /* needs attention: what she reports (words and intensity, never the body area), last 7 days, actions */
@@ -771,9 +774,11 @@ const grpCard=`<section class="card pad" id="grp"><div class="ch"><h2>Positions<
 /* hints for the week */
 const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
 const recTxt2=h=>h.charAt(0).toLowerCase()+h.slice(1).replace('athletes listed','athletes named in Weekly load and recovery');
+const lowSun=ATH.filter(a=>lowOn(a,-NEXT[0].i));
 const weekHints=[
   `<b>Tuesday Strength</b> comes ${Math.round(gapRows[0].g.gap)} h after the match, and ${gapRows[0].rd} of ${gapRows[0].rd+gapRows[0].nr} athletes are usually back to their usual energy by then. <b>Recommendation:</b> ${recTxt2(gapRows[0].hint)}`,
   `<b>Wednesday Jumps</b> comes ${gapRows[1].g.gap} h after Strength, and ${gapRows[1].nr} of ${gapRows[1].rd+gapRows[1].nr} athletes are usually not back yet. <b>Recommendation:</b> ${gapRows[1].sh<.6?'lighten Strength, or run Jumps with reduced volume for the athletes named in Weekly load and recovery, to protect Sunday.':'give the athletes named in Weekly load and recovery a reduced Jumps volume.'}`,
+  `<b>Sunday match:</b> ${lowSun.length?`${lowSun.length} athlete${lowSun.length>1?'s are':' is'} expected to have lower energy (${lowSun.map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan warm-up and playing time.`:'no athlete is expected to have lower energy. <b>Recommendation:</b> no change to the plan.'}`,
   `<b>The next 3 weeks</b> include 3 matches in 8 days: ${upc[0][2].length?`${upc[0][2].length} athlete${upc[0][2].length===1?'':'s'} may not be back in 73 h (${upc[0][2].map(a=>a.name.split(' ')[1]).join(', ')}). <b>Recommendation:</b> plan playing time and extra recovery time for ${upc[0][2].length===1?'this athlete':'these athletes'}.`:'all athletes are expected to be back in time.'}`];
 const gTop=[...grpData].sort((a,b)=>b.fl/b.n-a.fl/a.n)[0];
 if(gTop&&gTop.fl)weekHints.push(`<b>${gTop.g}:</b> ${gTop.fl} of ${gTop.n} athletes are flagged in Needs attention, the highest share of any position group${gTop.top.length?`; the most reported area is the ${gTop.top[0][0].toLowerCase()}`:''}. <b>Recommendation:</b> review training load for the flagged ${gTop.g.toLowerCase()}.`);
