@@ -474,9 +474,9 @@ tbody tr[data-id]{cursor:pointer}tbody tr[data-id]:focus-visible{outline:2px sol
 .rec>.lab{margin:6px 0 0}.rec>.lab.rec-g{margin-top:20px}
 .rec-r{display:grid;grid-template-columns:150px minmax(0,1.15fr) minmax(250px,1fr);gap:6px 32px;align-items:start;padding:14px 0;border-top:1px solid var(--line-soft)}.rec>.lab+.rec-r{margin-top:8px}
 .rw{display:flex;align-items:center;gap:9px}.rw b{font-size:14px;font-weight:600}.rw span{font-size:12.5px;color:var(--ink-2)}
-.rd{width:9px;height:9px;border-radius:50%;background:var(--bar);flex:none}.rd.am{background:var(--s1)}
+.rd{width:9px;height:9px;border-radius:50%;background:var(--bar);flex:none}.rd.a{background:var(--s1)}.rd.r{background:var(--s3)}
 .ra>b{display:block;font-size:15px;font-weight:600;line-height:1.35}.ra .chips{margin-top:9px}
-.re{font-size:12.5px;line-height:1.45;color:var(--ink-2)}.re .rbar{display:block;height:6px;max-width:230px;margin-bottom:7px;border-radius:3px;background:rgba(44,44,58,.1);overflow:hidden}.rbar i{display:block;height:100%;background:var(--s1)}
+.re{font-size:12.5px;line-height:1.45;color:var(--ink-2)}.re .rbar{display:block;height:6px;max-width:230px;margin-bottom:7px;border-radius:3px;background:rgba(44,44,58,.1);overflow:hidden}.rbar i{display:block;height:100%;border-radius:3px;background:var(--bar)}.rbar i.a{background:var(--s1)}.rbar i.r{background:var(--s3)}
 @media (max-width:900px){.rec-r{grid-template-columns:1fr;gap:8px;padding:16px 0}}
 @media (min-width:901px){.pos.na .pos-h,.pos.na .pos-r{grid-template-columns:minmax(150px,1.2fr) minmax(110px,.9fr) minmax(110px,.9fr) minmax(90px,.7fr) minmax(200px,2fr)}}
 
@@ -781,14 +781,15 @@ const slowM=ATH.filter(a=>a.m.rec.Match>=60).length;
 const lowSun=ATH.filter(a=>lowOn(a,-NEXT[0].i));
 /* overall recommendations: what to do, for whom, and how many are concerned */
 const sur=a=>a.name.split(' ')[1],plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
-const recRow=r=>`<div class="rec-r"><div class="rw"><i class="rd${r.n?' am':''}"></i><b>${r.d}</b>${r.w?`<span>${r.w}</span>`:''}</div><div class="ra"><b>${r.act}</b>${r.names.length?`<span class="chips">${r.names.slice(0,8).map(x=>`<span class="chip">${x}</span>`).join('')}${r.names.length>8?`<span class="chip">+${r.names.length-8}</span>`:''}</span>`:''}</div><div class="re"><span class="rbar" role="img" aria-label="${r.n} of ${r.of}"><i style="width:${r.of?Math.round(r.n/r.of*100):0}%"></i></span>${r.ev}</div></div>`;
+const lv=r=>!r.of||r.n/r.of<=.15?'g':r.n/r.of<=.4?'a':'r';
+const recRow=r=>`<div class="rec-r"><div class="rw"><i class="rd ${lv(r)}"></i><b>${r.d}</b>${r.w?`<span>${r.w}</span>`:''}</div><div class="ra"><b>${r.act}</b>${r.names.length?`<span class="chips">${r.names.slice(0,8).map(x=>`<span class="chip">${x}</span>`).join('')}${r.names.length>8?`<span class="chip">+${r.names.length-8}</span>`:''}</span>`:''}</div><div class="re"><span class="rbar" role="img" aria-label="${r.n} of ${r.of}"><i class="${lv(r)}" style="width:${r.n?Math.max(Math.round(r.n/r.of*100),4):0}%"></i></span>${r.ev}</div></div>`;
 const recSess=[
   {d:'Tue',w:'Strength',n:gapRows[0].nr,of:gapRows[0].rd+gapRows[0].nr,names:gapRows[0].names,
    act:gapRows[0].sh>=.85?'Keep the session as planned':gapRows[0].sh>=.6?`Keep the session, lighter for ${plural(gapRows[0].nr,'athlete')}`:'Lighten the session, or move it later',
-   ev:`${gapRows[0].rd} of ${gapRows[0].rd+gapRows[0].nr} are usually back to their usual energy ${Math.round(gapRows[0].g.gap)} h after the match`},
+   ev:`${gapRows[0].nr?`${gapRows[0].nr} of ${gapRows[0].rd+gapRows[0].nr} are usually not back to their usual energy`:`All ${gapRows[0].rd} are usually back to their usual energy`} ${Math.round(gapRows[0].g.gap)} h after the match`},
   {d:'Wed',w:'Speed',n:gapRows[1].nr,of:gapRows[1].rd+gapRows[1].nr,names:gapRows[1].names,
    act:gapRows[1].sh<.6?'Lighten Strength, or reduce Speed volume, to protect Sunday':gapRows[1].nr?`Reduce Speed volume for ${plural(gapRows[1].nr,'athlete')}`:'Keep the session as planned',
-   ev:`${gapRows[1].rd} of ${gapRows[1].rd+gapRows[1].nr} are usually back to their usual energy ${gapRows[1].g.gap} h after Strength`},
+   ev:`${gapRows[1].nr?`${gapRows[1].nr} of ${gapRows[1].rd+gapRows[1].nr} are usually not back to their usual energy`:`All ${gapRows[1].rd} are usually back to their usual energy`} ${gapRows[1].g.gap} h after Strength`},
   {d:'Sun',w:'Match',n:lowSun.length,of:N,names:lowSun.map(sur),
    act:lowSun.length?'Plan warm-up and substitutions':'No change to the plan',
    ev:lowSun.length?`${lowSun.length} of ${N} expected to have lower energy`:'No athlete is expected to have lower energy'}];
@@ -796,7 +797,7 @@ const recAhead=[{d:'Next 3 weeks',w:'',n:upc[0][2].length,of:N,names:upc[0][2].m
   act:upc[0][2].length?`Plan rotation and extra recovery time for ${upc[0][2].length===1?'this athlete':'these athletes'}`:'No change to the plan',
   ev:upc[0][2].length?`3 matches in 8 days: ${upc[0][2].length} of ${N} may not be back in 73 h`:'3 matches in 8 days: all athletes are expected to be back in time'}];
 const recGroups=[["This week's sessions",recSess],['Looking ahead',recAhead]];
-const recCard=`<section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins and recovery time</div></div>
+const recCard=`<section class="card pad"><div class="ch"><h2>Overall Recommendations from Technical and Medical Staff</h2><div class="note">based on check-ins and recovery time</div><div class="lg"><span style="color:var(--ink-3)">athletes concerned</span><span><i style="background:var(--bar)"></i>few</span><span><i style="background:var(--s1)"></i>some</span><span><i style="background:var(--s3)"></i>many</span></div></div>
 <div class="rec">${recGroups.filter(g=>g[1].length).map(([t,rs],k)=>`<p class="lab${k?' rec-g':''}">${t}</p>${rs.map(recRow).join('')}`).join('')}</div></section>`;
 /* athlete detail */
 function detail(a){const m=a.m,p=prio(a),v=AV[a.id],h=hints(a);
