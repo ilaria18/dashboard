@@ -458,6 +458,27 @@ tbody tr[data-id]{cursor:pointer}tbody tr[data-id]:focus-visible{outline:2px sol
 .card,.band{animation:none}
 .hm{min-width:0;width:100%}.hm th.l{font-size:10px}
 .pill.okg{background:rgba(14,143,125,.09);border-color:rgba(14,143,125,.32);color:#0B6C5F}
+.cal{display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:8px 34px;align-items:start;margin-top:6px}
+.cal-f{display:flex;flex-direction:column;gap:13px;position:sticky;top:14px}.cal-f .lab{margin:0 0 -4px}
+.fl{display:flex;flex-direction:column;gap:5px;min-width:0}.fl>span{font-size:12px;font-weight:500;color:var(--ink-2)}
+.fl select,.fl input[type=date],.fl input[type=time]{font:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:40px;width:100%;box-sizing:border-box}
+.fl select:focus-visible,.fl input:focus-visible,.cal-f .seg button:focus-visible,.cal-f .chk input:focus-visible{outline:2px solid var(--lav);outline-offset:2px}
+.fl2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink);cursor:pointer}.chk input{width:16px;height:16px;accent-color:var(--rail);margin:0}
+.btn.pri{background:var(--rail);border-color:var(--rail);color:var(--lime);padding:10px 24px;font-size:13px;font-weight:600;align-self:flex-start}
+@media (hover:hover) and (pointer:fine){.btn.pri:hover{background:var(--rail-2);border-color:var(--rail-2)}}
+.cal-f .seg{align-self:flex-start}.cal-f .seg button{padding:7px 16px}
+.cerr{margin:0;font-size:12.5px;color:var(--coral-deep);min-height:0}.cerr:empty{display:none}
+.cal-l .cd{margin:16px 0 6px;font-size:12.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}.cal-l .cd:first-of-type{margin-top:0}
+.cal-l .cd em{font-style:normal;font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--rail);background:var(--lime);border-radius:99px;padding:2px 8px}
+.cal-r{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:9px 12px 9px 14px;margin-bottom:5px;border-radius:9px;background:#F6F4F1;border-left:3px solid rgba(10,115,100,.4);font-size:13px}
+.cal-r.m{background:var(--amber-tint);border-left-color:var(--s1)}
+.cal-r .ct{font-variant-numeric:tabular-nums;font-weight:500;min-width:96px}.cal-r .cy{flex:1;min-width:90px;color:var(--ink)}.cal-r.m .cy{font-weight:600}
+.cal-r .evw{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--rail);background:var(--lime);border-radius:99px;padding:3px 9px}
+.cal-r .btn{margin-left:auto}
+.cal-more{margin-top:10px}
+.cal-empty{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
+@media (max-width:900px){.cal{grid-template-columns:1fr}.cal-f{position:static}.cal-l{margin-top:10px}}
 .lg{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;font-size:12px;color:var(--ink-2)}.lg span{display:inline-flex;align-items:center;gap:6px}.lg i{width:9px;height:9px;border-radius:3px;display:inline-block}
 .pos{margin-top:4px}.pos-h,.pos-r{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(150px,1.3fr) minmax(110px,.9fr) minmax(110px,.9fr) minmax(90px,.7fr) minmax(200px,2fr);gap:0 20px;align-items:center}
 .pos-h{padding:8px 0 6px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
@@ -854,7 +875,7 @@ const topBand=[
   ["Today's session",todayS?`${mdLab?mdLab+' · ':''}${todayS.type}`:'Rest day',todayS?`${Math.round((todayS.e-todayS.s)*60)} min`:''],
   ['Checked in',String(chkToday),`of ${N}`],
   ['Session effort',`Planned ${PLAN_RPE} · Team RPE ${TEAM_RPE}`,`<span class="gauge" role="img" aria-label="Team RPE ${TEAM_RPE} against planned ${PLAN_RPE}"><span class="gfill" style="width:${TEAM_RPE*10}%"></span><span class="gtick" style="left:calc(${PLAN_RPE*10}% - 1px)"></span></span>`]];
-$('#app').innerHTML=shell({label:'Head coach',nav:[['grp','Positions'],['att','Needs attention'],['sq','Availability'],['rc','Recovery and load']],
+$('#app').innerHTML=shell({label:'Head coach',nav:[['grp','Positions'],['att','Needs attention'],['sq','Availability'],['rc','Recovery and load'],['cal','Calendar']],
   title:'Volleyball',sub:'U14 Women · Season 2026/27',role:'HC',roleLabel:'Head coach',
   band:topBand,
   main:`
@@ -884,6 +905,7 @@ ${grpCard}
 ${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'])):'<p class="sub2">No athlete below her season level.</p>'}</section>
 <section class="card pad" id="wk"><div class="ch"><h2>Match week rhythm</h2><div class="note">squad energy around ${sun.length} matches (1–7)</div></div><svg id="mw"></svg>
 <div class="legend"><span><i style="background:#0A7364"></i>average energy · MD = match day</span></div></section></div>
+<section class="card pad" id="cal"></section>
 </div>
 
 
@@ -894,6 +916,56 @@ line($('#mw'),mwkLab,[{v:mwk,c:'#0A7364'}],[3,7,1]);
 line($('#sf'),wLab,[{v:wFat,c:'#CE6A18'}],[-1.5,.5,.5]);
 wireCommon(id=>openOver(detail(ATH[id])));
 $('#seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filt=b.dataset.p;document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#sqb').innerHTML=sqRows()});
+
+/* ---------- Team calendar: sample plan for the next weeks; changes stay on this page ---------- */
+(()=>{
+const el=$('#cal');
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'],DAYN=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const TYPES=['Recovery','Strength','Jumps','Technique','Tactics','Activation','Other'];
+const toH=t=>+t.slice(0,2)+(+t.slice(3,5))/60;
+let uid=0,kind='training',win=14;
+const ev=[];
+ROUT.forEach((r,w)=>{if(r)ev.push({id:++uid,kind:'training',type:r.type,wd:w,from:0,s:hhmm(r.s),e:hhmm(r.e),weekly:true,seed:true})});
+NEXT.forEach(n=>ev.push({id:++uid,kind:'match',type:'Match',day:-n.i,home:!!n.home,s:n.t,e:hhmm(toH(n.t)+1.75),weekly:false}));
+const dayDate=k=>new Date(D0+k*864e5),dayWd=k=>(dayDate(k).getUTCDay()+6)%7;
+const dayName=k=>{const d=dayDate(k);return `${DAYN[dayWd(k)]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`};
+const occ=k=>{const hasM=ev.some(x=>x.kind==='match'&&x.day===k);
+  return ev.filter(x=>x.weekly?(x.wd===dayWd(k)&&k>=x.from&&!(x.seed&&hasM)):x.day===k).sort((a,b)=>a.s.localeCompare(b.s))};
+const row=(x,k)=>`<div class="cal-r${x.kind==='match'?' m':''}"><span class="ct">${x.s}–${x.e}</span><span class="cy">${x.kind==='match'?`Match · ${x.home?'home':'away'}`:x.type}</span>${x.weekly?'<span class="evw">Every week</span>':''}<button class="btn cdel" type="button" data-id="${x.id}" aria-label="Delete ${x.kind==='match'?'match':x.type+(x.weekly?' (every week)':'')}, ${dayName(k)}">Delete</button></div>`;
+const list=()=>{let h='',n=0;for(let k=0;k<win;k++){const o=occ(k);if(!o.length)continue;n+=o.length;h+=`<p class="cd">${dayName(k)}${k===0?'<em>Today</em>':''}</p>`+o.map(x=>row(x,k)).join('')}
+  return (n?h:'<p class="cal-empty">Nothing planned in this period.</p>')+`<button class="btn cal-more" type="button" id="cMore">${win>14?'Show fewer':'Show 2 more weeks'}</button>`};
+const draw=()=>{$('#cL').innerHTML=list()};
+el.innerHTML=`<div class="ch"><h2>Team calendar</h2><div class="note">trainings and matches for the team</div></div>
+<p class="sub2">The trainings and matches you add here appear in the app of the athletes of the team. They can see them but not change them; they can add sessions of their own, which you do not see.</p>
+<div class="cal"><form class="cal-f" id="cF" novalidate><p class="lab">Add a training or a match</p>
+<div class="seg" id="cK" role="group" aria-label="What it is"><button type="button" data-k="training" aria-pressed="true">Training</button><button type="button" data-k="match" aria-pressed="false">Match</button></div>
+<label class="fl" id="cTw"><span>Type of training</span><select id="cT">${TYPES.map(t=>`<option${t==='Technique'?' selected':''}>${t}</option>`).join('')}</select></label>
+<label class="fl" id="cHw" hidden><span>Home or away</span><select id="cH"><option value="1">Home</option><option value="0">Away</option></select></label>
+<label class="fl"><span>Day</span><input type="date" id="cD" value="2026-10-05" min="2026-10-05"></label>
+<div class="fl2"><label class="fl"><span>Start</span><input type="time" id="cS" value="18:00"></label><label class="fl"><span>End</span><input type="time" id="cE" value="19:30"></label></div>
+<label class="chk" id="cRw"><input type="checkbox" id="cR"> Repeat every week</label>
+<p class="cerr" id="cX" role="alert"></p>
+<button class="btn pri" type="submit">Add</button><p class="sub2" id="cOk" aria-live="polite" style="margin:0"></p></form>
+<div class="cal-l"><p class="lab">Coming up</p><div id="cL"></div></div></div>
+<p class="sub2" style="margin-top:12px">Sample calendar: changes stay on this page and are not stored or sent.</p>`;
+draw();
+$('#cK').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;kind=b.dataset.k;
+  document.querySelectorAll('#cK button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  $('#cTw').hidden=kind==='match';$('#cHw').hidden=kind!=='match';$('#cRw').hidden=kind==='match';
+  if(kind==='match'){$('#cS').value='15:00';$('#cE').value='16:45'}else{$('#cS').value='18:00';$('#cE').value='19:30'}$('#cOk').textContent=''});
+$('#cF').addEventListener('submit',e=>{e.preventDefault();const err=m=>{$('#cX').textContent=m;$('#cOk').textContent=''};
+  const d=$('#cD').value,s=$('#cS').value,t=$('#cE').value;
+  if(!d)return err('Choose a day.');if(!s||!t)return err('Choose a start and an end time.');if(t<=s)return err('The end time must be after the start time.');
+  const day=Math.round((Date.parse(d+'T00:00:00Z')-D0)/864e5);if(day<0)return err('Choose today or a later day.');
+  $('#cX').textContent='';const weekly=kind==='training'&&$('#cR').checked;
+  const x={id:++uid,kind,s,e:t,weekly};
+  if(kind==='match'){x.type='Match';x.day=day;x.home=$('#cH').value==='1'}else{x.type=$('#cT').value;if(weekly){x.wd=dayWd(day);x.from=day}else x.day=day}
+  ev.push(x);if(day>=win)win=day>=28?day+1:28;draw();
+  $('#cOk').textContent=`Added: ${kind==='match'?'match':x.type}, ${dayName(day)}, ${s}–${t}${weekly?', every week':''}.`});
+el.addEventListener('click',e=>{const b=e.target.closest('.cdel');
+  if(b){const i=ev.findIndex(x=>x.id===+b.dataset.id);if(i>=0)ev.splice(i,1);draw();$('#cOk').textContent='Removed.';return}
+  if(e.target.closest('#cMore')){win=win>14?14:28;draw()}});
+})();
 </script>
 
 </body></html>
