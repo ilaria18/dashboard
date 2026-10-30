@@ -482,6 +482,24 @@ tbody tr[data-id]{cursor:pointer}tbody tr[data-id]:focus-visible{outline:2px sol
 .cal-more{margin-top:10px}
 .cal-empty{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
 @media (max-width:900px){.cal{grid-template-columns:1fr}.cal-f{position:static}.cal-l{margin-top:10px}}
+.main.pg-cal>:not(header.top):not(#cal){display:none!important}.main:not(.pg-cal)>#cal{display:none}
+.main.pg-cal>#cal{padding-top:15px}
+.cal-bar{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;margin-bottom:12px;min-height:36px}.cal-bar .lab{margin:0}
+.cal-nav{display:flex;align-items:center;gap:7px}.cal-nav .btn{min-width:34px;padding:5px 12px;font-size:13px}.cal-nav .btn:disabled{opacity:.4;cursor:default}.cal-nav strong{font-family:var(--disp);font-size:17px;font-weight:600;margin-left:8px;letter-spacing:-.01em}
+.cal-bar .seg button{padding:6px 15px}
+.gh,.gg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.gh{margin-bottom:4px}.gh span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding:0 6px}
+.gc{font:inherit;color:var(--ink);text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 6px 6px;min-height:94px;display:flex;flex-direction:column;gap:3px;min-width:0;transition:border-color 150ms var(--ease),background 150ms var(--ease)}
+@media (hover:hover) and (pointer:fine){.gc:hover{background:#FAF8F6;border-color:rgba(44,44,58,.26)}}
+.gc.out{background:transparent;border-color:var(--line-soft);color:var(--ink-3)}.gc.out .ge,.gc.out .gmore{opacity:.55}
+.gc[aria-pressed="true"]{border-color:var(--lav);box-shadow:0 0 0 1px var(--lav);background:var(--surface)}
+.gc:focus-visible{outline:2px solid var(--lav);outline-offset:2px}
+.gn{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;line-height:22px;height:22px;min-width:22px}
+.gc.td .gn{display:inline-grid;place-items:center;width:22px;border-radius:50%;background:var(--rail);color:#fff;align-self:flex-start}
+.ge{display:block;font-size:10.5px;line-height:1.35;padding:2px 4px;border-radius:4px;background:rgba(10,115,100,.09);border-left:2px solid rgba(10,115,100,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.ge.m{background:var(--amber-tint);border-left-color:var(--s1);font-weight:600}
+.gmore{font-size:10.5px;color:var(--ink-3);padding-left:2px}
+.gd{display:none}.cal-l .cd.dd{margin:18px 0 8px}
+@media (max-width:640px){.gg,.gh{gap:3px}.gh span{padding:0 2px;text-align:center;font-size:9px;letter-spacing:.04em}.gc{min-height:54px;padding:5px 2px 4px;align-items:center;gap:4px}.ge,.gmore{display:none}.gd{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}.gd i{width:6px;height:6px;border-radius:50%;background:rgba(10,115,100,.6)}.gd i.m{background:var(--s1)}.gc.td .gn{align-self:center}.cal-nav strong{margin-left:4px;font-size:15px}}
 .lg{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;font-size:12px;color:var(--ink-2)}.lg span{display:inline-flex;align-items:center;gap:6px}.lg i{width:9px;height:9px;border-radius:3px;display:inline-block}
 .pos{margin-top:4px}.pos-h,.pos-r{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(150px,1.3fr) minmax(110px,.9fr) minmax(110px,.9fr) minmax(90px,.7fr) minmax(200px,2fr);gap:0 20px;align-items:center}
 .pos-h{padding:8px 0 6px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
@@ -920,53 +938,79 @@ ${fatList.length?kv(fatList.map(a=>[a.name,'▼ '+f1(a.fat.drop)+' over 4 weeks'
 line($('#sf'),wLab,[{v:wFat,c:'#CE6A18'}],[-1.5,.5,.5]);
 wireCommon(id=>openOver(detail(ATH[id])));
 
-/* ---------- Team calendar: sample plan for the next weeks; changes stay on this page ---------- */
+/* ---------- Team calendar: sample plan, month grid and list; changes stay on this page ---------- */
 (()=>{
+const CFG={"title": "Calendar", "note": "trainings and competitions", "intro": "The trainings and competitions you add here appear in the app of the athletes. They can see them but not change them; they can add sessions of their own, which you do not see.", "types": ["Recovery", "Strength", "Speed", "Technique", "Activation", "Other"], "def": "Technique", "ml": "Competition", "ha": false};
 const el=$('#cal');
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'],DAYN=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const TYPES=['Recovery','Strength','Speed','Technique','Activation','Other'];
 const toH=t=>+t.slice(0,2)+(+t.slice(3,5))/60;
-let uid=0,kind='training',win=14;
+let uid=0,kind='training',win=14,view='month',mo=0,sel=0;
 const ev=[];
-ROUT.forEach((r,w)=>{if(r)ev.push({id:++uid,kind:'training',type:r.type,wd:w,from:0,s:hhmm(r.s),e:hhmm(r.e),weekly:true,seed:true})});
+ROUT.forEach((r,w)=>{if(r)ev.push({id:++uid,kind:'training',type:r.type,wd:w,from:-400,s:hhmm(r.s),e:hhmm(r.e),weekly:true,seed:true})});
+MATCH.forEach(i=>{if(i>=1){const sun=dow(i)===6;ev.push({id:++uid,kind:'match',type:'Match',day:-i,home:i%2===0,s:sun?'15:00':'18:00',e:sun?'16:45':'19:45',weekly:false})}});
 NEXT.forEach(n=>ev.push({id:++uid,kind:'match',type:'Match',day:-n.i,home:!!n.home,s:n.t,e:hhmm(toH(n.t)+1.75),weekly:false}));
 const dayDate=k=>new Date(D0+k*864e5),dayWd=k=>(dayDate(k).getUTCDay()+6)%7;
 const dayName=k=>{const d=dayDate(k);return `${DAYN[dayWd(k)]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`};
+const iso=k=>dayDate(k).toISOString().slice(0,10);
 const occ=k=>{const hasM=ev.some(x=>x.kind==='match'&&x.day===k);
   return ev.filter(x=>x.weekly?(x.wd===dayWd(k)&&k>=x.from&&!(x.seed&&hasM)):x.day===k).sort((a,b)=>a.s.localeCompare(b.s))};
-const row=(x,k)=>`<div class="cal-r${x.kind==='match'?' m':''}"><span class="ct">${x.s}–${x.e}</span><span class="cy">${x.kind==='match'?'Competition':x.type}</span>${x.weekly?'<span class="evw">Every week</span>':''}<button class="btn cdel" type="button" data-id="${x.id}" aria-label="Delete ${x.kind==='match'?'competition':x.type+(x.weekly?' (every week)':'')}, ${dayName(k)}">Delete</button></div>`;
+const lbl=x=>x.kind==='match'?CFG.ml:x.type,lblFull=x=>x.kind==='match'&&CFG.ha?`${CFG.ml} · ${x.home?'home':'away'}`:lbl(x);
+const row=(x,k)=>`<div class="cal-r${x.kind==='match'?' m':''}"><span class="ct">${x.s}–${x.e}</span><span class="cy">${lblFull(x)}</span>${x.weekly?'<span class="evw">Every week</span>':''}<button class="btn cdel" type="button" data-id="${x.id}" aria-label="Delete ${x.kind==='match'?CFG.ml.toLowerCase():x.type+(x.weekly?' (every week)':'')}, ${dayName(k)}">Delete</button></div>`;
 const list=()=>{let h='',n=0;for(let k=0;k<win;k++){const o=occ(k);if(!o.length)continue;n+=o.length;h+=`<p class="cd">${dayName(k)}${k===0?'<em>Today</em>':''}</p>`+o.map(x=>row(x,k)).join('')}
   return (n?h:'<p class="cal-empty">Nothing planned in this period.</p>')+`<button class="btn cal-more" type="button" id="cMore">${win>14?'Show fewer':'Show 2 more weeks'}</button>`};
-const draw=()=>{$('#cL').innerHTML=list()};
-el.innerHTML=`<div class="ch"><h2>Calendar</h2><div class="note">trainings and competitions</div></div>
-<p class="sub2">The trainings and competitions you add here appear in the app of the athletes. They can see them but not change them; they can add sessions of their own, which you do not see.</p>
-<div class="cal"><form class="cal-f" id="cF" novalidate><p class="lab">Add a training or a competition</p>
-<div class="seg" id="cK" role="group" aria-label="What it is"><button type="button" data-k="training" aria-pressed="true">Training</button><button type="button" data-k="match" aria-pressed="false">Competition</button></div>
-<label class="fl" id="cTw"><span>Type of training</span><select id="cT">${TYPES.map(t=>`<option${t==='Technique'?' selected':''}>${t}</option>`).join('')}</select></label>
-<label class="fl"><span>Day</span><input type="date" id="cD" value="2026-10-05" min="2026-10-05"></label>
+/* month grid */
+const y0=new Date(D0).getUTCFullYear(),m0=new Date(D0).getUTCMonth();
+const mInfo=()=>{const first=Date.UTC(y0,m0+mo,1),fd=new Date(first),wd=(fd.getUTCDay()+6)%7,nd=new Date(Date.UTC(fd.getUTCFullYear(),fd.getUTCMonth()+1,0)).getUTCDate(),fk=Math.round((first-D0)/864e5);
+  return{y:fd.getUTCFullYear(),m:fd.getUTCMonth(),rows:Math.ceil((wd+nd)/7),k0:fk-wd,fk,nd}};
+const cell=(k,I)=>{const o=occ(k),d=dayDate(k);
+  return `<button type="button" class="gc${d.getUTCMonth()===I.m?'':' out'}${k===0?' td':''}" data-k="${k}" aria-pressed="${k===sel}" aria-label="${dayName(k)}, ${o.length?o.length+(o.length===1?' session':' sessions'):'nothing planned'}"><span class="gn">${d.getUTCDate()}</span>${o.slice(0,3).map(x=>`<span class="ge${x.kind==='match'?' m':''}">${x.s} ${lbl(x)}</span>`).join('')}${o.length>3?`<span class="gmore">+${o.length-3} more</span>`:''}<span class="gd">${o.slice(0,4).map(x=>`<i${x.kind==='match'?' class="m"':''}></i>`).join('')}</span></button>`};
+const monthV=I=>{const o=occ(sel);
+  return `<div class="gh" aria-hidden="true">${DOW.map(d=>`<span>${d}</span>`).join('')}</div><div class="gg">${Array.from({length:I.rows*7},(_,c)=>cell(I.k0+c,I)).join('')}</div>
+<p class="cd dd">${dayName(sel)}${sel===0?'<em>Today</em>':''}</p>${o.length?o.map(x=>row(x,sel)).join(''):'<p class="cal-empty">Nothing planned on this day.</p>'}`};
+const draw=()=>{const isM=view==='month';$('#cNv').hidden=!isM;$('#cLb').hidden=isM;
+  if(isM){const I=mInfo();$('#cM').textContent=`${MONTHS[I.m]} ${I.y}`;$('#cPrev').disabled=mo<=-9;$('#cNext').disabled=mo>=6;$('#cL').innerHTML=monthV(I)}else $('#cL').innerHTML=list();
+  document.querySelectorAll('#cV button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===view)))};
+el.innerHTML=`<p class="sub2" style="margin-top:0">${CFG.intro}</p>
+<div class="cal"><form class="cal-f" id="cF" novalidate><p class="lab">Add a training or a ${CFG.ml.toLowerCase()}</p>
+<div class="seg" id="cK" role="group" aria-label="What it is"><button type="button" data-k="training" aria-pressed="true">Training</button><button type="button" data-k="match" aria-pressed="false">${CFG.ml}</button></div>
+<label class="fl" id="cTw"><span>Type of training</span><select id="cT">${CFG.types.map(t=>`<option${t===CFG.def?' selected':''}>${t}</option>`).join('')}</select></label>
+${CFG.ha?`<label class="fl" id="cHw" hidden><span>Home or away</span><select id="cH"><option value="1">Home</option><option value="0">Away</option></select></label>`:''}
+<label class="fl"><span>Day</span><input type="date" id="cD" value="2026-10-05" min="2026-10-05" max="2027-04-30"></label>
 <div class="fl2"><label class="fl"><span>Start</span><input type="time" id="cS" value="18:00"></label><label class="fl"><span>End</span><input type="time" id="cE" value="19:30"></label></div>
 <label class="chk" id="cRw"><input type="checkbox" id="cR"> Repeat every week</label>
 <p class="cerr" id="cX" role="alert"></p>
 <button class="btn pri" type="submit">Add</button><p class="sub2" id="cOk" aria-live="polite" style="margin:0"></p></form>
-<div class="cal-l"><p class="lab">Coming up</p><div id="cL"></div></div></div>
+<div class="cal-l"><div class="cal-bar"><div class="cal-nav" id="cNv"><button class="btn" type="button" id="cPrev" data-n="-1" aria-label="Previous month">‹</button><button class="btn" type="button" data-n="0">Today</button><button class="btn" type="button" id="cNext" data-n="1" aria-label="Next month">›</button><strong id="cM" aria-live="polite"></strong></div><p class="lab" id="cLb" hidden>Coming up</p>
+<div class="seg" id="cV" role="group" aria-label="Calendar view"><button type="button" data-v="month" aria-pressed="true">Month</button><button type="button" data-v="list" aria-pressed="false">List</button></div></div><div id="cL"></div></div></div>
 <p class="sub2" style="margin-top:12px">Sample calendar: changes stay on this page and are not stored or sent.</p>`;
 draw();
 $('#cK').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;kind=b.dataset.k;
   document.querySelectorAll('#cK button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
-  $('#cTw').hidden=kind==='match';$('#cRw').hidden=kind==='match';
+  $('#cTw').hidden=kind==='match';if($('#cHw'))$('#cHw').hidden=kind!=='match';$('#cRw').hidden=kind==='match';
   if(kind==='match'){$('#cS').value='15:00';$('#cE').value='16:45'}else{$('#cS').value='18:00';$('#cE').value='19:30'}$('#cOk').textContent=''});
 $('#cF').addEventListener('submit',e=>{e.preventDefault();const err=m=>{$('#cX').textContent=m;$('#cOk').textContent=''};
   const d=$('#cD').value,s=$('#cS').value,t=$('#cE').value;
   if(!d)return err('Choose a day.');if(!s||!t)return err('Choose a start and an end time.');if(t<=s)return err('The end time must be after the start time.');
   const day=Math.round((Date.parse(d+'T00:00:00Z')-D0)/864e5);if(day<0)return err('Choose today or a later day.');
+  const dd=dayDate(day),dm=(dd.getUTCFullYear()-y0)*12+dd.getUTCMonth()-m0;if(dm>6)return err('Choose a day up to April 2027.');
   $('#cX').textContent='';const weekly=kind==='training'&&$('#cR').checked;
   const x={id:++uid,kind,s,e:t,weekly};
-  if(kind==='match'){x.type='Match';x.day=day;x.home=true}else{x.type=$('#cT').value;if(weekly){x.wd=dayWd(day);x.from=day}else x.day=day}
-  ev.push(x);if(day>=win)win=day>=28?day+1:28;draw();
-  $('#cOk').textContent=`Added: ${kind==='match'?'competition':x.type}, ${dayName(day)}, ${s}–${t}${weekly?', every week':''}.`});
-el.addEventListener('click',e=>{const b=e.target.closest('.cdel');
+  if(kind==='match'){x.type='Match';x.day=day;x.home=CFG.ha?$('#cH').value==='1':true}else{x.type=$('#cT').value;if(weekly){x.wd=dayWd(day);x.from=day}else x.day=day}
+  ev.push(x);if(day>=win)win=day>=28?day+1:28;mo=dm;sel=day;draw();
+  $('#cOk').textContent=`Added: ${kind==='match'?CFG.ml.toLowerCase():x.type}, ${dayName(day)}, ${s}–${t}${weekly?', every week':''}.`});
+el.addEventListener('click',e=>{
+  const g=e.target.closest('.gc');if(g){sel=+g.dataset.k;if(sel>=0)$('#cD').value=iso(sel);draw();const f=el.querySelector(`.gc[data-k="${sel}"]`);if(f)f.focus();return}
+  const n=e.target.closest('[data-n]');if(n&&!n.disabled){const v=+n.dataset.n;mo=v===0?0:mo+v;const I=mInfo();sel=(I.fk<=0&&0<I.fk+I.nd)?0:I.fk;draw();return}
+  const vb=e.target.closest('#cV button');if(vb){view=vb.dataset.v;draw();return}
+  const b=e.target.closest('.cdel');
   if(b){const i=ev.findIndex(x=>x.id===+b.dataset.id);if(i>=0)ev.splice(i,1);draw();$('#cOk').textContent='Removed.';return}
   if(e.target.closest('#cMore')){win=win>14?14:28;draw()}});
+/* the calendar is its own page: Calendar in the menu shows it, every other item brings the overview back */
+const main=document.querySelector('main.main'),h1=main.querySelector('header.top h1'),h1o=h1.textContent,pn=document.querySelector('.privacy-note'),links=[...document.querySelectorAll('#nav a')];
+const route=()=>{const id=location.hash.slice(1),isC=id==='cal';main.classList.toggle('pg-cal',isC);h1.textContent=isC?CFG.title:h1o;if(pn)pn.hidden=isC;
+  links.forEach(a=>{const h=a.getAttribute('href').slice(1),on=isC?h==='cal':id?h===id:a===links[0];a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  const t=!isC&&id&&document.getElementById(id);if(t)t.scrollIntoView();else window.scrollTo(0,0)};
+window.addEventListener('hashchange',route);route();
 })();
 </script>
 
