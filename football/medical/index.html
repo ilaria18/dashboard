@@ -728,7 +728,7 @@ span.nm{display:inline-block;margin:0 8px 8px 0;padding:5px 12px;border-radius:9
 .cflt{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}.cflt .lnk{margin-left:auto;border:0;background:none;text-decoration:underline;cursor:pointer;font:inherit;color:inherit}
 .cs-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0 0 16px}.cs-sum>div{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid #e6e1da}.cs-sum b{display:block;font-size:30px;line-height:1.1}.cs-sum span{display:block;font-size:14px;margin-top:6px;font-weight:600}.cs-sum em{display:block;font-style:normal;font-size:12.5px;color:var(--ink-2);margin-top:2px}
 #caseLists .card{margin-bottom:16px}.vr .vact{display:grid;gap:8px;min-width:200px}.vr .vact select{font:inherit;padding:8px 10px;border:1px solid #d8d2c9;border-radius:10px;background:#fff}
-.vr .nxa{margin-top:8px;font-size:14.5px}.chip2.new{background:#EFE9FB;color:#5b3fa8}.vr .lk.sm{font-size:13px;margin-top:4px;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.vr.done{background:#ECEAE7!important;opacity:.6;border-left-color:#bdb6ac!important}.vr.done .btn.go{background:#d4d0ca;color:#555;border-color:#d4d0ca}.vr .nxa{margin-top:8px;font-size:14.5px}.chip2.new{background:#EFE9FB;color:#5b3fa8}.vr .lk.sm{font-size:13px;margin-top:4px;background:none;border:0;padding:0;text-align:left;cursor:pointer}
 @media(max-width:760px){.vr .vact{min-width:0}}
 </style>
 
@@ -1104,33 +1104,27 @@ redrawLines();
 (()=>{const T=document.getElementById('caseSrc'),host=document.getElementById('caseLists');if(!T||!host)return;
 const KEY='babcases_'+location.pathname.replace(/\W+/g,'_'),DAY=['Today','Tomorrow','In 2 days','In 3 days'];
 const rows=[...T.content.querySelectorAll('.vr')].map(r=>({id:r.querySelector('[data-open]').dataset.open,name:r.querySelector('.nm').textContent,pos:r.querySelector('.sub2').textContent,k:r.classList.contains('sil')?'sil':r.classList.contains('wat')?'wat':'urg',pill:r.querySelector('.pill').outerHTML,why:r.querySelector('.why').textContent,area:(r.querySelector('.chip2')||{}).textContent||'',strip:(r.querySelector('.mini7')||{}).outerHTML||'',pk:(r.querySelector('.meta>.sub2')||{}).textContent||''}));
-const seed=()=>{const S={};let n=0;rows.forEach(c=>{S[c.id]={st:'new',d:null,n:1,upd:false};if(c.k!=='sil'){n++;if(n===3){S[c.id]={st:'due',d:0,n:1,upd:false,by:'seed'}}}});return S};
+const seed=()=>{const S={};let n=0;rows.forEach(c=>{S[c.id]={n:1,done:false,upd:false,due:false};if(c.k!=='sil'){n++;if(n===3)S[c.id].due=true}});return S};
 let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||rows.some(c=>!S[c.id]))S=seed();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-const when=d=>d<=0?'today':d===1?'tomorrow':'in '+d+' days';
-const opts=(k)=>DAY.map((t,i)=>'<option value="'+i+'">'+t+'</option>').join('')+(k==='due'?'<option value="x">Close the case</option>':'');
-const row=c=>{const s=S[c.id],cl=s.st==='new'?(c.k==='sil'?'contact':'assess'):s.st;
- const act=cl==='assess'?'Assess and record the outcome':cl==='contact'?'Contact her, then set a check':s.d<=0?'Re-assess today, before training':'Re-assess '+when(s.d);
- const bt=cl==='assess'?'Assessed, set next check':cl==='contact'?'Contacted, set next check':'Check done, set next';
- return '<div class="vr '+(c.k==='sil'?'sil':c.k)+'"><div><button type="button" class="lk nm" data-open="'+c.id+'">'+c.name+'</button><div class="sub2">'+c.pos+'</div><div style="margin-top:6px">'+c.pill+'</div></div>'+
+const cl=c=>c.k==='sil'?'contact':S[c.id].due?'due':'assess';
+const row=c=>{const s=S[c.id],k=cl(c);
+ const act=k==='assess'?'Assess and record the outcome':k==='contact'?'Contact her':'Re-assess today, before training';
+ return '<div class="vr '+(c.k==='sil'?'sil':c.k)+(s.done?' done':'')+'"><div><button type="button" class="lk nm" data-open="'+c.id+'">'+c.name+'</button><div class="sub2">'+c.pos+'</div><div style="margin-top:6px">'+c.pill+'</div></div>'+
  '<div><div class="why">'+c.why+'</div><div class="meta">'+(c.area?'<span class="chip2">'+c.area+'</span>':'')+c.strip+(c.pk?'<span class="sub2">'+c.pk+'</span>':'')+(s.n>1?'<span class="chip2 new">'+s.n+' check-ins on this episode</span>':'')+'</div>'+
- '<div class="nxa"><b>'+act+'</b>'+(s.upd?' <span class="chip2 new">new check-in</span>':'')+'</div></div>'+
- '<div class="vact"><label class="sub2">Next check <select data-nx="'+c.id+'">'+opts(cl==='due'||cl==='later'?'due':'')+'</select></label><button type="button" class="btn go" data-ok="'+c.id+'">'+bt+'</button><button type="button" class="lk sm" data-open="'+c.id+'">Open file →</button><button type="button" class="lk sm" data-sim="'+c.id+'">New check-in, same episode (demo)</button></div></div>'};
+ '<div class="nxa"><b>'+act+'</b>'+(s.upd&&!s.done?' <span class="chip2 new">new check-in</span>':'')+'</div></div>'+
+ '<div class="vact"><button type="button" class="btn go" data-ok="'+c.id+'" aria-pressed="'+s.done+'">'+(s.done?'Done ✓':'Done')+'</button><button type="button" class="lk sm" data-open="'+c.id+'">Open file →</button><button type="button" class="lk sm" data-sim="'+c.id+'">New check-in, same episode (demo)</button></div></div>'};
 const sec=(id,h,note,l,e)=>'<section class="card pad" id="'+id+'"><div class="ch"><h2>'+h+'</h2><div class="note">'+l.length+' · '+note+'</div></div><div class="vl">'+(l.length?l.map(row).join(''):'<p class="sub2">'+e+'</p>')+'</div></section>';
-const draw=()=>{const cl=c=>{const s=S[c.id];return s.st==='new'?(c.k==='sil'?'contact':'assess'):s.st==='closed'?'closed':(s.d<=1?'due':'later')};
- const g=k=>rows.filter(c=>cl(c)===k),o={urg:0,wat:1,sil:2},A=g('assess').sort((a,b)=>o[a.k]-o[b.k]),C=g('contact'),D=g('due').sort((a,b)=>S[a.id].d-S[b.id].d),L=g('later'),X=g('closed');
- S2=S;host.innerHTML='<p class="calintro">One working list. Each case has a reason and a next action. A new check-in on the same episode updates the case, it does not open a new one.</p>'+
- '<div class="cs-sum"><div><b>'+A.length+'</b><span>To assess</span><em>symptom or signal, not assessed yet</em></div><div><b>'+C.length+'</b><span>To contact</span><em>not filling in</em></div><div><b>'+D.length+'</b><span>Checks due</span><em>today or tomorrow</em></div><div><b>'+L.length+'</b><span>Later</span><em>next check further away</em></div></div>'+
- '<div class="cflt"><span class="sub2">'+X.length+' closed today</span><button type="button" class="lnk" data-rs>Reset demo</button></div>'+
- sec('val','To assess','most urgent first',A,'Nothing to assess.')+sec('sil','To contact','no check-in for 4 days or more',C,'Nobody to contact.')+sec('due','Checks due','next check today or tomorrow',D,'No check due.')+
- (L.length?'<details class="card more" id="later"><summary><span class="mt">Later ('+L.length+')</span><span class="mn">next check more than a day away</span></summary><div class="mbody"><div class="vl">'+L.map(row).join('')+'</div></div></details>':'')+
- '<p class="sub2" style="padding:0 4px">Observations from the check-ins, not diagnoses. The state of the cases is kept in this browser (demo).</p>'};
-let S2;
+const draw=()=>{const g=k=>rows.filter(c=>cl(c)===k),o={urg:0,wat:1,sil:2},A=g('assess').sort((a,b)=>(S[a.id].done-S[b.id].done)||o[a.k]-o[b.k]),C=g('contact').sort((a,b)=>S[a.id].done-S[b.id].done),D=g('due').sort((a,b)=>S[a.id].done-S[b.id].done),open=l=>l.filter(c=>!S[c.id].done).length;
+ host.innerHTML='<p class="calintro">One working list. Each case has a reason and a next action. Press Done when you have dealt with it: the box turns grey. A new check-in on the same episode updates the case and turns it back on.</p>'+
+ '<div class="cs-sum"><div><b>'+open(A)+'</b><span>To assess</span><em>symptom or signal</em></div><div><b>'+open(C)+'</b><span>To contact</span><em>not filling in</em></div><div><b>'+open(D)+'</b><span>Checks due</span><em>to re-assess</em></div></div>'+
+ '<div class="cflt"><button type="button" class="lnk" data-rs>Reset demo</button></div>'+
+ sec('val','To assess','most urgent first',A,'Nothing to assess.')+sec('sil','To contact','no check-in for 4 days or more',C,'Nobody to contact.')+sec('due','Checks due','already assessed, to re-assess',D,'No check due.')+
+ '<p class="sub2" style="padding:0 4px">Observations from the check-ins, not diagnoses. Done is kept in this browser (demo).</p>'};
 host.addEventListener('click',e=>{const b=e.target.closest('[data-ok]'),m=e.target.closest('[data-sim]');
- if(b){const id=b.dataset.ok,v=host.querySelector('[data-nx="'+id+'"]').value,s=S[id];if(v==='x'){s.st='closed'}else{s.d=+v;s.st=s.d<=1?'due':'later';s.upd=false}save();draw();return}
- if(m){const s=S[m.dataset.sim];s.n++;if(s.st!=='new'){s.st='due';s.d=0;s.upd=true}save();draw();return}
+ if(b){const s=S[b.dataset.ok];s.done=!s.done;if(s.done)s.upd=false;save();draw();return}
+ if(m){const s=S[m.dataset.sim];s.n++;s.done=false;s.upd=true;save();draw();return}
  if(e.target.closest('[data-rs]')){S=seed();save();draw()}});
-host.addEventListener('change',e=>{});
 draw()})();
 </script>
 </body></html>
