@@ -720,7 +720,7 @@ span.nm{display:inline-block;margin:0 8px 8px 0;padding:5px 12px;border-radius:9
 .cflt{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}.cflt .lnk{margin-left:auto;border:0;background:none;text-decoration:underline;cursor:pointer;font:inherit;color:inherit}
 .cs-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0 0 16px}.cs-sum>div{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid #e6e1da}.cs-sum b{display:block;font-size:30px;line-height:1.1}.cs-sum span{display:block;font-size:14px;margin-top:6px;font-weight:600}.cs-sum em{display:block;font-style:normal;font-size:12.5px;color:var(--ink-2);margin-top:2px}
 #caseLists .card{margin-bottom:16px}.vr .vact{display:grid;gap:8px;min-width:200px}.vr .vact select{font:inherit;padding:8px 10px;border:1px solid #d8d2c9;border-radius:10px;background:#fff}
-.vr.done{background:#ECEAE7!important;opacity:.6;border-left-color:#bdb6ac!important}.vr.done .btn.go{background:#d4d0ca;color:#555;border-color:#d4d0ca}.vr .nxa{margin-top:8px;font-size:14.5px}.chip2.new{background:#EFE9FB;color:#5b3fa8}.vr .lk.sm{font-size:13px;margin-top:4px;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.vr.done{background:#ECEAE7!important;opacity:.6;border-left-color:#bdb6ac!important}.vr.done .btn.go{background:#d4d0ca;color:#555;border-color:#d4d0ca}.kneeb{margin-top:10px;background:#fff;border-radius:10px;padding:10px 12px}.kneeb .lab{margin:0 0 4px}.kneeb .kl{font-size:13.5px;line-height:1.45;margin-top:6px}.kneeb .chips{display:flex;gap:6px;flex-wrap:wrap}.kck{margin-top:8px}.kck summary{cursor:pointer;font-weight:600;font-size:13.5px}.kck .tw{margin:8px 0 0!important}.vr .nxa{margin-top:8px;font-size:14.5px}.chip2.new{background:#EFE9FB;color:#5b3fa8}.vr .lk.sm{font-size:13px;margin-top:4px;background:none;border:0;padding:0;text-align:left;cursor:pointer}
 @media(max-width:760px){.vr .vact{min-width:0}}
 </style>
 
@@ -1018,9 +1018,12 @@ window.addEventListener('hashchange',route);route();
 redrawLines();
 </script>
 <script>
+const KN={},KS={},KX=[];
 (()=>{const T=document.getElementById('caseSrc'),host=document.getElementById('caseLists');if(!T||!host)return;
 const KEY='babcases_'+location.pathname.replace(/\W+/g,'_'),DAY=['Today','Tomorrow','In 2 days','In 3 days'];
 const rows=[...T.content.querySelectorAll('.vr')].map(r=>({id:r.querySelector('[data-open]').dataset.open,name:r.querySelector('.nm').textContent,pos:r.querySelector('.sub2').textContent,k:r.classList.contains('sil')?'sil':r.classList.contains('wat')?'wat':'urg',pill:r.querySelector('.pill').outerHTML,why:r.querySelector('.why').textContent,area:(r.querySelector('.chip2')||{}).textContent||'',strip:(r.querySelector('.mini7')||{}).outerHTML||'',pk:(r.querySelector('.meta>.sub2')||{}).textContent||''}));
+KX.forEach(k=>{if(!rows.some(r=>r.id==k.id))rows.push({id:String(k.id),name:k.name,pos:k.pos+' · '+k.age+' years',k:'urg',pill:'<span class="pill urg">Knee signal</span>',why:'Knee signals in the check-ins, see below.',area:'',strip:'',pk:''})});
+const kw=c=>(KS[c.id]||0)>=2?0:1;
 const seed=()=>{const S={};let n=0;rows.forEach(c=>{S[c.id]={n:1,done:false,upd:false,due:false};});return S};
 let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||rows.some(c=>!S[c.id]))S=seed();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -1030,12 +1033,12 @@ const row=c=>{const s=S[c.id],k=cl(c);
  const act=k==='assess'?'':k==='contact'?'Contact her':'New check-in after Done, re-assess';
  return '<div class="vr '+(c.k==='sil'?'sil':c.k)+(s.done?' done':'')+'"><div><button type="button" class="lk nm" data-open="'+c.id+'">'+c.name+'</button><div class="sub2">'+c.pos+'</div><div style="margin-top:6px">'+c.pill+'</div></div>'+
  '<div><div class="why">'+c.why+'</div><div class="meta">'+(c.area?'<span class="chip2">'+c.area+'</span>':'')+c.strip+(c.pk?'<span class="sub2">'+c.pk+'</span>':'')+(s.n>1?'<span class="chip2 new">'+s.n+' check-ins on this episode</span>':'')+'</div>'+
- (act||(s.upd&&!s.done)?'<div class="nxa">'+(act?'<b>'+act+'</b>':'')+(s.upd&&!s.done?' <span class="chip2 new">new check-in</span>':'')+'</div>':'')+'</div>'+
+ (act||(s.upd&&!s.done)?'<div class="nxa">'+(act?'<b>'+act+'</b>':'')+(s.upd&&!s.done?' <span class="chip2 new">new check-in</span>':'')+'</div>':'')+(KN[c.id]||'')+'</div>'+
  '<div class="vact"><button type="button" class="btn go" data-ok="'+c.id+'" aria-pressed="'+s.done+'">'+(s.done?'Done ✓':'Done')+'</button><button type="button" class="lk sm" data-open="'+c.id+'">Open file →</button><button type="button" class="lk sm" data-sim="'+c.id+'">New check-in, same episode (demo)</button></div></div>'};
 const sec=(id,h,note,l,e)=>'<section class="card pad" id="'+id+'"><div class="ch"><h2>'+h+'</h2><div class="note">'+l.length+' · '+note+'</div></div><div class="vl">'+(l.length?l.map(row).join(''):'<p class="sub2">'+e+'</p>')+'</div></section>';
-const draw=()=>{const g=k=>rows.filter(c=>cl(c)===k),o={urg:0,wat:1,sil:2},A=g('assess').sort((a,b)=>(S[a.id].done-S[b.id].done)||o[a.k]-o[b.k]),C=g('contact').sort((a,b)=>S[a.id].done-S[b.id].done),D=g('due').sort((a,b)=>S[a.id].done-S[b.id].done),open=l=>l.filter(c=>!S[c.id].done).length;
+const draw=()=>{const g=k=>rows.filter(c=>cl(c)===k),o={urg:0,wat:1,sil:2},A=g('assess').sort((a,b)=>(S[a.id].done-S[b.id].done)||kw(a)-kw(b)||o[a.k]-o[b.k]||a.name.localeCompare(b.name)),C=g('contact').sort((a,b)=>S[a.id].done-S[b.id].done),D=g('due').sort((a,b)=>S[a.id].done-S[b.id].done),open=l=>l.filter(c=>!S[c.id].done).length;
  host.innerHTML='<p class="calintro">One working list. Each case has a reason and a next action. Press Done when you have dealt with it: the box turns grey. A new check-in on the same episode updates the case; if it was already Done, it goes back to To assess.</p>'+
- '<div class="cs-sum"><div><b>'+open(A)+'</b><span>To assess</span><em>symptom or signal</em></div><div><b>'+open(C)+'</b><span>To contact</span><em>not filling in</em></div></div>'+
+ '<div class="cs-sum"><div><b>'+open(A)+'</b><span>To assess</span><em>symptom or signal</em></div><div><b>'+open(C)+'</b><span>To contact</span><em>not filling in</em></div>'+(KX.length?'<div><b>'+rows.filter(c=>(KS[c.id]||0)>=2&&cl(c)!=='contact'&&!S[c.id].done).length+'</b><span>With a knee signal</span><em>2 or more points</em></div>':'')+'</div>'+
  '<div class="cflt"><button type="button" class="lnk" data-rs>Reset demo</button></div>'+
  sec('val','To assess','most urgent first',A,'Nothing to assess.')+sec('sil','To contact','no check-in for 4 days or more',C,'Nobody to contact.')+(D.length?sec('due','Checks due','to re-assess',D,''):'')+
  '<p class="sub2" style="padding:0 4px">Observations from the check-ins, not diagnoses. Done is kept in this browser (demo).</p>'};

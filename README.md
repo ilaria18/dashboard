@@ -17,7 +17,7 @@ Demo dashboards for BAB. All data is sample data. They are static pages with pre
 | Football | https://ilaria18.github.io/dashboard/football/medical/ | https://ilaria18.github.io/dashboard/football/medical/#ath |
 | Volleyball | https://ilaria18.github.io/dashboard/volleyball/medical/ | https://ilaria18.github.io/dashboard/volleyball/medical/#ath |
 
-Medical pages: Overview, Athletes to assess, Athlete file, Areas and load, Knee and ACL (football only), Hormonal health, Weight and height, Feedback (a form to write to the BAB team), Calendar.
+Medical pages: Overview, Athletes to assess, Athlete file, Areas and load (with the knee), Hormonal health, Weight and height, Feedback (a form to write to the BAB team), Calendar.
 
 Athletics has no medical staff dashboard.
 
