@@ -1104,26 +1104,27 @@ redrawLines();
 (()=>{const T=document.getElementById('caseSrc'),host=document.getElementById('caseLists');if(!T||!host)return;
 const KEY='babcases_'+location.pathname.replace(/\W+/g,'_'),DAY=['Today','Tomorrow','In 2 days','In 3 days'];
 const rows=[...T.content.querySelectorAll('.vr')].map(r=>({id:r.querySelector('[data-open]').dataset.open,name:r.querySelector('.nm').textContent,pos:r.querySelector('.sub2').textContent,k:r.classList.contains('sil')?'sil':r.classList.contains('wat')?'wat':'urg',pill:r.querySelector('.pill').outerHTML,why:r.querySelector('.why').textContent,area:(r.querySelector('.chip2')||{}).textContent||'',strip:(r.querySelector('.mini7')||{}).outerHTML||'',pk:(r.querySelector('.meta>.sub2')||{}).textContent||''}));
-const seed=()=>{const S={};let n=0;rows.forEach(c=>{S[c.id]={n:1,done:false,upd:false,due:false};if(c.k!=='sil'){n++;if(n===3)S[c.id].due=true}});return S};
+const seed=()=>{const S={};let n=0;rows.forEach(c=>{S[c.id]={n:1,done:false,upd:false,due:false};});return S};
 let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||rows.some(c=>!S[c.id]))S=seed();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const c0=id=>cl(rows.find(c=>c.id===id));
 const cl=c=>c.k==='sil'?'contact':S[c.id].due?'due':'assess';
 const row=c=>{const s=S[c.id],k=cl(c);
- const act=k==='assess'?'':k==='contact'?'Contact her':'Re-assess today, before training';
+ const act=k==='assess'?'':k==='contact'?'Contact her':'New check-in after Done, re-assess';
  return '<div class="vr '+(c.k==='sil'?'sil':c.k)+(s.done?' done':'')+'"><div><button type="button" class="lk nm" data-open="'+c.id+'">'+c.name+'</button><div class="sub2">'+c.pos+'</div><div style="margin-top:6px">'+c.pill+'</div></div>'+
  '<div><div class="why">'+c.why+'</div><div class="meta">'+(c.area?'<span class="chip2">'+c.area+'</span>':'')+c.strip+(c.pk?'<span class="sub2">'+c.pk+'</span>':'')+(s.n>1?'<span class="chip2 new">'+s.n+' check-ins on this episode</span>':'')+'</div>'+
  (act||(s.upd&&!s.done)?'<div class="nxa">'+(act?'<b>'+act+'</b>':'')+(s.upd&&!s.done?' <span class="chip2 new">new check-in</span>':'')+'</div>':'')+'</div>'+
  '<div class="vact"><button type="button" class="btn go" data-ok="'+c.id+'" aria-pressed="'+s.done+'">'+(s.done?'Done ✓':'Done')+'</button><button type="button" class="lk sm" data-open="'+c.id+'">Open file →</button><button type="button" class="lk sm" data-sim="'+c.id+'">New check-in, same episode (demo)</button></div></div>'};
 const sec=(id,h,note,l,e)=>'<section class="card pad" id="'+id+'"><div class="ch"><h2>'+h+'</h2><div class="note">'+l.length+' · '+note+'</div></div><div class="vl">'+(l.length?l.map(row).join(''):'<p class="sub2">'+e+'</p>')+'</div></section>';
 const draw=()=>{const g=k=>rows.filter(c=>cl(c)===k),o={urg:0,wat:1,sil:2},A=g('assess').sort((a,b)=>(S[a.id].done-S[b.id].done)||o[a.k]-o[b.k]),C=g('contact').sort((a,b)=>S[a.id].done-S[b.id].done),D=g('due').sort((a,b)=>S[a.id].done-S[b.id].done),open=l=>l.filter(c=>!S[c.id].done).length;
- host.innerHTML='<p class="calintro">One working list. Each case has a reason and a next action. Press Done when you have dealt with it: the box turns grey. A new check-in on the same episode updates the case and turns it back on.</p>'+
- '<div class="cs-sum"><div><b>'+open(A)+'</b><span>To assess</span><em>symptom or signal</em></div><div><b>'+open(C)+'</b><span>To contact</span><em>not filling in</em></div><div><b>'+open(D)+'</b><span>Checks due</span><em>to re-assess</em></div></div>'+
+ host.innerHTML='<p class="calintro">One working list. Each case has a reason and a next action. Press Done when you have dealt with it: the box turns grey. A new check-in on the same episode updates the case; if it was already Done, it moves to Checks due.</p>'+
+ '<div class="cs-sum"><div><b>'+open(A)+'</b><span>To assess</span><em>symptom or signal</em></div><div><b>'+open(C)+'</b><span>To contact</span><em>not filling in</em></div><div><b>'+open(D)+'</b><span>Checks due</span><em>new check-in after Done</em></div></div>'+
  '<div class="cflt"><button type="button" class="lnk" data-rs>Reset demo</button></div>'+
- sec('val','To assess','most urgent first',A,'Nothing to assess.')+sec('sil','To contact','no check-in for 4 days or more',C,'Nobody to contact.')+sec('due','Checks due','already assessed, to re-assess',D,'No check due.')+
+ sec('val','To assess','most urgent first',A,'Nothing to assess.')+sec('sil','To contact','no check-in for 4 days or more',C,'Nobody to contact.')+sec('due','Checks due','done before, then a new check-in arrived',D,'No check due.')+
  '<p class="sub2" style="padding:0 4px">Observations from the check-ins, not diagnoses. Done is kept in this browser (demo).</p>'};
 host.addEventListener('click',e=>{const b=e.target.closest('[data-ok]'),m=e.target.closest('[data-sim]');
  if(b){const s=S[b.dataset.ok];s.done=!s.done;if(s.done)s.upd=false;save();draw();return}
- if(m){const s=S[m.dataset.sim];s.n++;s.done=false;s.upd=true;save();draw();return}
+ if(m){const s=S[m.dataset.sim];s.n++;if(s.done&&c0(m.dataset.sim)!=='contact')s.due=true;s.done=false;s.upd=true;save();draw();return}
  if(e.target.closest('[data-rs]')){S=seed();save();draw()}});
 draw()})();
 </script>
