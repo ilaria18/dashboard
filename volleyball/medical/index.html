@@ -1026,10 +1026,10 @@ let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||rows.some(c=>
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const cl=c=>c.k==='sil'?'contact':S[c.id].due?'due':'assess';
 const row=c=>{const s=S[c.id],k=cl(c);
- const act=k==='assess'?'Assess and record the outcome':k==='contact'?'Contact her':'Re-assess today, before training';
+ const act=k==='assess'?'':k==='contact'?'Contact her':'Re-assess today, before training';
  return '<div class="vr '+(c.k==='sil'?'sil':c.k)+(s.done?' done':'')+'"><div><button type="button" class="lk nm" data-open="'+c.id+'">'+c.name+'</button><div class="sub2">'+c.pos+'</div><div style="margin-top:6px">'+c.pill+'</div></div>'+
  '<div><div class="why">'+c.why+'</div><div class="meta">'+(c.area?'<span class="chip2">'+c.area+'</span>':'')+c.strip+(c.pk?'<span class="sub2">'+c.pk+'</span>':'')+(s.n>1?'<span class="chip2 new">'+s.n+' check-ins on this episode</span>':'')+'</div>'+
- '<div class="nxa"><b>'+act+'</b>'+(s.upd&&!s.done?' <span class="chip2 new">new check-in</span>':'')+'</div></div>'+
+ (act||(s.upd&&!s.done)?'<div class="nxa">'+(act?'<b>'+act+'</b>':'')+(s.upd&&!s.done?' <span class="chip2 new">new check-in</span>':'')+'</div>':'')+'</div>'+
  '<div class="vact"><button type="button" class="btn go" data-ok="'+c.id+'" aria-pressed="'+s.done+'">'+(s.done?'Done ✓':'Done')+'</button><button type="button" class="lk sm" data-open="'+c.id+'">Open file →</button><button type="button" class="lk sm" data-sim="'+c.id+'">New check-in, same episode (demo)</button></div></div>'};
 const sec=(id,h,note,l,e)=>'<section class="card pad" id="'+id+'"><div class="ch"><h2>'+h+'</h2><div class="note">'+l.length+' · '+note+'</div></div><div class="vl">'+(l.length?l.map(row).join(''):'<p class="sub2">'+e+'</p>')+'</div></section>';
 const draw=()=>{const g=k=>rows.filter(c=>cl(c)===k),o={urg:0,wat:1,sil:2},A=g('assess').sort((a,b)=>(S[a.id].done-S[b.id].done)||o[a.k]-o[b.k]),C=g('contact').sort((a,b)=>S[a.id].done-S[b.id].done),D=g('due').sort((a,b)=>S[a.id].done-S[b.id].done),open=l=>l.filter(c=>!S[c.id].done).length;
